@@ -1,0 +1,1 @@
+# Infraestructura: BD, configuración, adaptadores externos

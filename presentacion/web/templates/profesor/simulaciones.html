@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Mis Simulaciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="profesor-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Profesor</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre activo abierto" onclick="toggleSubmenu('sub-simuladores')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simuladores</span>
+                    <span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto" id="sub-simuladores">
+                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
+                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem activo">▶️ Mis simulaciones</a>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem">➕ Nueva simulación</a>
+                </div>
+                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Administrar Contraseña</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Mis Simulaciones</h1>
+                <p class="page-subtitle">{{ industrias|length }} simulación(es) creada(s)</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div class="acciones-header" style="margin-bottom: 20px;">
+                <a href="{{ url_for('profesor.nueva_simulacion') }}" class="btn-primario">
+                    ➕ NUEVA SIMULACIÓN
+                </a>
+            </div>
+
+            {% if industrias %}
+            <section class="card">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>SIMULACIÓN</th>
+                            <th>AÑO</th>
+                            <th>EQUIPOS</th>
+                            <th>DECISIONES</th>
+                            <th>ESTADO</th>
+                            <th>CREADA</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ind in industrias %}
+                        <tr>
+                            <td>
+                                <strong>{{ ind.nombre }}</strong>
+                                <div style="font-size:12px; color:#999;">{{ ind.simulador_codigo }}</div>
+                            </td>
+                            <td>
+                                <strong>{{ ind.anio_actual }} / {{ ind.anio_maximo }}</strong>
+                            </td>
+                            <td>{{ ind.total_equipos }}</td>
+                            <td>
+                                {{ ind.equipos_decidieron }} / {{ ind.total_equipos }}
+                                {% if ind.equipos_decidieron == ind.total_equipos and ind.total_equipos > 0 %}
+                                <span class="badge badge-ok" style="margin-left:6px;">✓ Listo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ind.estado == 'inicializada' %}
+                                <span class="badge badge-info">🆕 Inicializada</span>
+                                {% elif ind.estado == 'activa' %}
+                                <span class="badge badge-ok">▶️ Activa</span>
+                                {% elif ind.estado == 'bloqueada' %}
+                                <span class="badge badge-warning">🔒 Bloqueada</span>
+                                {% else %}
+                                <span class="badge">✅ Finalizada</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size:13px; color:#888;">{{ ind.creada }}</td>
+                            <td>
+                                <a href="{{ url_for('profesor.detalle_simulacion', industria_id=ind.id) }}" 
+                                   class="btn-primario" style="padding:8px 16px; font-size:13px;">
+                                    ABRIR
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+            {% else %}
+            <section class="card">
+                <div class="vacio">
+                    <div class="vacio-icono">📊</div>
+                    <h3 class="vacio-titulo">No hay simulaciones creadas</h3>
+                    <p class="vacio-texto">Crea tu primera simulación para empezar a gestionar equipos.</p>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="btn-primario">
+                        ➕ CREAR PRIMERA SIMULACIÓN
+                    </a>
+                </div>
+            </section>
+            {% endif %}
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+    </script>
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

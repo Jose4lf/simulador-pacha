@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Importar Alumnos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="profesor-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Profesor</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre activo abierto" onclick="toggleSubmenu('sub-simuladores')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simuladores</span>
+                    <span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto" id="sub-simuladores">
+                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
+                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem activo">▶️ Mis simulaciones</a>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem">➕ Nueva simulación</a>
+                    <a href="{{ url_for('profesor.manual') }}" class="sidebar-subitem">📖 Manual de uso</a>
+                </div>
+                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Administrar Contraseña</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Importar Alumnos desde CSV</h1>
+                <p class="page-subtitle">{{ industria.nombre }} — {{ industria.total_equipos }} equipos</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Formulario de carga -->
+            <section class="card">
+                <div class="sim-card-etiqueta" style="margin-bottom:15px;">
+                    📥 SUBIR ARCHIVO CSV
+                </div>
+
+                <form action="{{ url_for('profesor.importar_alumnos_csv', industria_id=industria.id) }}" 
+                      method="POST" enctype="multipart/form-data">
+                    <div style="display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap;">
+                        <div class="form-campo" style="flex:1; min-width:280px;">
+                            <label>Archivo CSV</label>
+                            <input type="file" name="archivo_csv" accept=".csv" required 
+                                   style="padding:14px 16px; border:2px dashed #B9DDF4; border-radius:12px; 
+                                          background:#fdfdfd; cursor:pointer; font-family:'Patrick Hand'; font-size:15px;">
+                        </div>
+                        <button type="submit" class="btn-primario">📥 IMPORTAR CSV</button>
+                    </div>
+                </form>
+
+                <div class="aviso-info" style="margin-top:20px;">
+                    <strong>📋 Formato del CSV</strong>
+                    <pre style="background:#faf8fc; padding:15px; border-radius:8px; 
+                                font-family:'Courier New', monospace; font-size:13px; 
+                                color:#514653; overflow-x:auto; margin-top:10px; 
+                                border-left:3px solid #B9DDF4;">equipo_numero,numero_alumno,nombre,email
+1,1,Juan Pérez,juan@ejemplo.bo
+1,2,María López,maria@ejemplo.bo
+2,1,Carlos Rojas,carlos@ejemplo.bo
+2,2,Ana Gutiérrez,ana@ejemplo.bo</pre>
+                    <p style="margin-top:12px; font-size:14px; line-height:1.6;">
+                        <strong>Reglas:</strong>
+                    </p>
+                    <ul style="font-size:14px; line-height:1.8; padding-left:20px; margin-top:6px;">
+                        <li><strong>equipo_numero:</strong> número del equipo (1, 2, 3...)</li>
+                        <li><strong>numero_alumno:</strong> si es <code>1</code> → es el <strong>representante del equipo</strong></li>
+                        <li><strong>nombre:</strong> nombre completo del estudiante</li>
+                        <li><strong>email:</strong> correo electrónico (se usa para crear el usuario)</li>
+                    </ul>
+                    <p style="margin-top:12px; font-size:13px; color:#888;">
+                        💡 <strong>Usuario:</strong> se genera del email (ej: <code>juan@ejemplo.bo</code> → <code>juan</code>)<br>
+                        🔐 <strong>Contraseña:</strong> todos reciben <code>alumno123</code>
+                    </p>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <a href="#" class="btn-secundario" onclick="descargarPlantilla(); return false;">
+                        📄 DESCARGAR PLANTILLA
+                    </a>
+                </div>
+            </section>
+
+            <!-- Resultado del último import -->
+            {% if ultimo_import %}
+            <section class="card" style="margin-top:20px;">
+                <div class="sim-card-etiqueta" style="margin-bottom:15px;">
+                    📊 RESULTADO DE LA ÚLTIMA IMPORTACIÓN
+                </div>
+
+                {% if ultimo_import.creados %}
+                <div style="margin-bottom:20px;">
+                    <h4 style="color:#2c5f3d; margin-bottom:12px;">
+                        ✅ Usuarios creados ({{ ultimo_import.creados|length }})
+                    </h4>
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>USUARIO</th>
+                                <th>NOMBRE</th>
+                                <th>EMAIL</th>
+                                <th>EQUIPO</th>
+                                <th>ROL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in ultimo_import.creados %}
+                            <tr>
+                                <td><code>{{ u.username }}</code></td>
+                                <td>{{ u.nombre }}</td>
+                                <td>{{ u.email }}</td>
+                                <td><strong>Equipo {{ u.equipo }}</strong></td>
+                                <td>
+                                    {% if u.representante %}
+                                    <span class="badge badge-warning">👑 Representante</span>
+                                    {% else %}
+                                    <span class="badge badge-info">👤 Miembro</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                {% if ultimo_import.errores %}
+                <div>
+                    <h4 style="color:#8b2234; margin-bottom:12px;">
+                        ⚠️ Errores ({{ ultimo_import.errores|length }})
+                    </h4>
+                    <ul style="list-style:none; padding:0;">
+                        {% for error in ultimo_import.errores %}
+                        <li style="background:#F6C6D0; color:#8b2234; padding:10px 15px; 
+                                   margin-bottom:6px; border-radius:8px; font-size:13px;
+                                   border-left:3px solid #e74c3c;">
+                            {{ error }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <div style="margin-top:20px;">
+                <a href="{{ url_for('profesor.detalle_simulacion', industria_id=industria.id) }}" 
+                   class="btn-secundario">← Volver al Panel</a>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+
+        function descargarPlantilla() {
+            const contenido = `equipo_numero,numero_alumno,nombre,email
+1,1,Juan Pérez,juan@ejemplo.bo
+1,2,María López,maria@ejemplo.bo
+1,3,Pedro Gómez,pedro@ejemplo.bo
+2,1,Carlos Rojas,carlos@ejemplo.bo
+2,2,Ana Gutiérrez,ana@ejemplo.bo
+2,3,Luis Mamani,luis@ejemplo.bo`;
+            
+            const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'plantilla_alumnos.csv';
+            link.click();
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+
+</body>
+</html>

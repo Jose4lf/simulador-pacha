@@ -1,0 +1,845 @@
+/* ==================================================
+   PACHA - Panel del Profesor
+   Paleta: Rosa, Lavanda, Menta, Celeste, Crema, Ciruela
+   Fuentes: Dancing Script, Amatic SC, Patrick Hand
+   ================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.profesor-body {
+    font-family: 'Patrick Hand', cursive;
+    background: #f5f3f7;
+    color: #514653;
+    min-height: 100vh;
+}
+
+/* ==================================================
+   HEADER
+   ================================================== */
+.header {
+    background: #ffffff;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 2px 12px rgba(81, 70, 83, 0.08);
+    border-bottom: 3px solid #B9DDF4;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+        #F6C6D0 0%,
+        #C9B6E4 25%,
+        #B9DDF4 50%,
+        #BFE8D1 75%,
+        #FFF1C7 100%);
+}
+
+.header-izq {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icono {
+    font-size: 32px;
+}
+
+.logo-texto {
+    font-family: 'Dancing Script', cursive;
+    font-size: 32px;
+    font-weight: 700;
+    color: #514653;
+    letter-spacing: 2px;
+}
+
+.header-der {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-idioma {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #f5f3f7;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.header-idioma:hover {
+    background: #B9DDF4;
+}
+
+.header-usuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    background: #f5f3f7;
+    transition: 0.3s;
+}
+
+.header-usuario:hover {
+    background: #B9DDF4;
+}
+
+.header-usuario .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #B9DDF4;
+    color: #514653;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Dancing Script', cursive;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.header-usuario .datos {
+    line-height: 1.2;
+}
+
+.header-usuario .nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: #514653;
+}
+
+.header-usuario .rol {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-salir {
+    padding: 10px 20px;
+    background: #B9DDF4;
+    color: #514653;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: 0.3s;
+}
+
+.btn-salir:hover {
+    background: #C9B6E4;
+}
+
+/* ==================================================
+   CONTENEDOR PRINCIPAL
+   ================================================== */
+.contenedor {
+    display: flex;
+    min-height: calc(100vh - 70px);
+}
+
+/* ==================================================
+   SIDEBAR
+   ================================================== */
+.sidebar {
+    width: 280px;
+    background: #514653;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 25px 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 12px;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #B9DDF4;
+    font-size: 15px;
+    transition: 0.3s;
+    cursor: pointer;
+    user-select: none;
+}
+
+.sidebar-item:hover {
+    background: rgba(185, 221, 244, 0.15);
+    color: #ffffff;
+}
+
+.sidebar-item.activo {
+    background: #C9B6E4;
+    color: #514653;
+    font-weight: 600;
+}
+
+.sidebar-item-padre {
+    position: relative;
+}
+
+.sidebar-arrow {
+    margin-left: auto;
+    font-size: 10px;
+    transition: 0.3s;
+}
+
+.sidebar-item.abierto {
+    background: rgba(201, 184, 230, 0.2);
+}
+
+.sidebar-icon {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.sidebar-label {
+    flex: 1;
+}
+
+/* Submenú */
+.sidebar-submenu {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: 20px;
+    padding-left: 15px;
+    border-left: 2px dashed rgba(185, 221, 244, 0.3);
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.sidebar-submenu.abierto {
+    display: flex;
+}
+
+.sidebar-subitem {
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #B9DDF4;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.sidebar-subitem:hover {
+    background: rgba(185, 221, 244, 0.15);
+    color: #ffffff;
+    transform: translateX(4px);
+}
+
+.sidebar-subitem.activo {
+    background: rgba(201, 184, 230, 0.3);
+    color: #ffffff;
+}
+
+.sidebar-footer {
+    text-align: center;
+    padding: 15px;
+    color: rgba(185, 221, 244, 0.5);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* ==================================================
+   CONTENIDO PRINCIPAL
+   ================================================== */
+.main-contenido {
+    flex: 1;
+    padding: 40px 50px;
+    background: #f5f3f7;
+}
+
+/* Bienvenida */
+.bienvenida {
+    margin-bottom: 40px;
+}
+
+.bienvenida-titulo {
+    font-family: 'Dancing Script', cursive;
+    font-size: 60px;
+    color: #B9DDF4;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+
+.bienvenida-texto {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 18px;
+    color: #888;
+    max-width: 700px;
+    line-height: 1.6;
+}
+
+/* ==================================================
+   ESTADÍSTICAS
+   ================================================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(81, 70, 83, 0.08);
+    transition: 0.3s;
+    border-left: 5px solid #B9DDF4;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(81, 70, 83, 0.15);
+}
+
+.stat-card:nth-child(1) { border-left-color: #B9DDF4; }
+.stat-card:nth-child(2) { border-left-color: #BFE8D1; }
+.stat-card:nth-child(3) { border-left-color: #F6C6D0; }
+.stat-card:nth-child(4) { border-left-color: #FFF1C7; }
+
+.stat-icono {
+    font-size: 36px;
+    line-height: 1;
+}
+
+.stat-contenido {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-etiqueta {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.stat-valor {
+    font-family: 'Dancing Script', cursive;
+    font-size: 36px;
+    font-weight: 700;
+    color: #514653;
+    line-height: 1;
+}
+
+/* ==================================================
+   TARJETAS DE SIMULACIÓN (Panel de Control)
+   ================================================== */
+.simulacion-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sim-card {
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 16px;
+    border-left: 5px solid #B9DDF4;
+    box-shadow: 0 4px 20px rgba(81, 70, 83, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.sim-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(81, 70, 83, 0.15);
+}
+
+.sim-card-industria { border-left-color: #B9DDF4; }
+.sim-card-decisiones { border-left-color: #BFE8D1; }
+.sim-card-simulacion { border-left-color: #C9B6E4; }
+.sim-card-mantenimiento { border-left-color: #FFF1C7; }
+
+.sim-card-etiqueta {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.sim-card-valor {
+    font-size: 20px;
+    font-weight: 700;
+    color: #514653;
+    font-family: 'Patrick Hand', cursive;
+    line-height: 1.3;
+}
+
+.sim-card-subtexto {
+    font-size: 13px;
+    color: #888;
+    font-family: 'Patrick Hand', cursive;
+}
+
+/* Botones especiales en tarjetas */
+.btn-correr {
+    background: #C9B6E4;
+    color: #514653;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    margin-top: 8px;
+}
+
+.btn-correr:hover {
+    background: #B9A6D4;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(201, 184, 230, 0.4);
+}
+
+.btn-acciones {
+    background: #FFF1C7;
+    color: #8b6914;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    margin-top: 8px;
+}
+
+.btn-acciones:hover {
+    background: #FFE5A0;
+    transform: translateY(-2px);
+}
+
+/* Toggle switch para "Permitir Envío" */
+.toggle-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.toggle-mini input {
+    display: none;
+}
+
+.toggle-mini-slider {
+    width: 42px;
+    height: 22px;
+    background: #e8e4ec;
+    border-radius: 15px;
+    position: relative;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.toggle-mini-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.toggle-mini input:checked + .toggle-mini-slider {
+    background: #BFE8D1;
+}
+
+.toggle-mini input:checked + .toggle-mini-slider::before {
+    transform: translateX(20px);
+}
+
+.toggle-mini-texto {
+    font-size: 12px;
+    color: #888;
+    font-family: 'Patrick Hand', cursive;
+}
+
+/* ==================================================
+   PAGE HEADER
+   ================================================== */
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: 42px;
+    color: #B9DDF4;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #888;
+    font-family: 'Patrick Hand', cursive;
+}
+
+/* ==================================================
+   CARD genérico
+   ================================================== */
+.card {
+    background: #ffffff;
+    padding: 25px 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(81, 70, 83, 0.08);
+    margin-bottom: 20px;
+}
+
+/* ==================================================
+   BOTONES
+   ================================================== */
+.btn-primario {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #C9B6E4;
+    color: #514653;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 12px rgba(201, 184, 230, 0.3);
+}
+
+.btn-primario:hover {
+    background: #B9A6D4;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201, 184, 230, 0.5);
+}
+
+.btn-secundario {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #e8e4ec;
+    color: #514653;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 15px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-secundario:hover {
+    background: #d8d4dc;
+}
+
+/* ==================================================
+   TABLA
+   ================================================== */
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla thead {
+    background: #f5f3f7;
+}
+
+.tabla th {
+    padding: 14px 12px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e8e4ec;
+}
+
+.tabla td {
+    padding: 14px 12px;
+    font-size: 15px;
+    color: #514653;
+    border-bottom: 1px solid #f0edf3;
+}
+
+.tabla tbody tr:hover {
+    background: #faf8fc;
+}
+
+.tabla code {
+    background: #f0edf3;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    color: #514653;
+    font-size: 13px;
+}
+
+/* ==================================================
+   BADGES
+   ================================================== */
+.badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.badge-ok {
+    background: #BFE8D1;
+    color: #2c5f3d;
+}
+
+.badge-error {
+    background: #F6C6D0;
+    color: #8b2234;
+}
+
+.badge-warning {
+    background: #FFF1C7;
+    color: #8b6914;
+}
+
+.badge-info {
+    background: #B9DDF4;
+    color: #2c5f7d;
+}
+
+/* ==================================================
+   ALERTAS
+   ================================================== */
+.alert {
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 15px;
+    font-family: 'Patrick Hand', cursive;
+    animation: slideIn 0.3s ease;
+}
+
+.alert-exito {
+    background: #BFE8D1;
+    color: #2c5f3d;
+    border-left: 4px solid #4caf50;
+}
+
+.alert-error {
+    background: #F6C6D0;
+    color: #8b2234;
+    border-left: 4px solid #e74c3c;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================================================
+   ESTADO VACÍO
+   ================================================== */
+.vacio {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.vacio-icono {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.4;
+}
+
+.vacio-titulo {
+    font-family: 'Dancing Script', cursive;
+    font-size: 32px;
+    color: #B9DDF4;
+    margin-bottom: 10px;
+}
+
+.vacio-texto {
+    font-size: 16px;
+    color: #888;
+    margin-bottom: 25px;
+}
+
+/* ==================================================
+   RESPONSIVE
+   ================================================== */
+@media (max-width: 900px) {
+    .sidebar {
+        width: 70px;
+    }
+
+    .sidebar-label,
+    .sidebar-arrow,
+    .sidebar-submenu {
+        display: none !important;
+    }
+
+    .sidebar-item {
+        justify-content: center;
+        padding: 14px;
+    }
+
+    .main-contenido {
+        padding: 25px 20px;
+    }
+
+    .bienvenida-titulo {
+        font-size: 42px;
+    }
+}
+
+@media (max-width: 600px) {
+    .header {
+        padding: 0 15px;
+    }
+
+    .header-usuario .datos {
+        display: none;
+    }
+
+    .header-idioma {
+        display: none;
+    }
+}
+/* ==================================================
+   FORMULARIOS
+   ================================================== */
+.form-profesor {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-campo label {
+    font-size: 14px;
+    color: #514653;
+    font-weight: 600;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.form-campo input,
+.form-campo select {
+    padding: 14px 16px;
+    border: 2px solid #B9DDF4;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Patrick Hand', cursive;
+    color: #514653;
+    background: #fdfdfd;
+    outline: none;
+    transition: 0.3s;
+}
+
+.form-campo input:focus,
+.form-campo select:focus {
+    border-color: #BFE8D1;
+    box-shadow: 0 0 0 4px rgba(191, 232, 209, 0.3);
+}
+
+.form-hint {
+    font-size: 12px;
+    color: #999;
+    font-family: 'Patrick Hand', cursive;
+}
+
+/* Info box */
+.aviso-info {
+    background: #FFF1C7;
+    padding: 20px 25px;
+    border-radius: 12px;
+    border-left: 4px solid #F39C12;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 14px;
+    color: #514653;
+    line-height: 1.6;
+}
+
+.aviso-info strong {
+    color: #8b6914;
+}
+
+.aviso-info ul {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.aviso-info li {
+    margin-bottom: 5px;
+}
+
+/* Acciones del formulario */
+.acciones-form {
+    display: flex;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 2px solid #f0edf3;
+}
+
+/* Acciones header */
+.acciones-header {
+    display: flex;
+    justify-content: flex-start;
+}
+.input-mayusculas {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

@@ -1,0 +1,14 @@
+# Parámetros globales del simulador
+mercado:
+  tamaño_total: 10000
+  inflacion: 0.02
+  sensibilidad_precio: 1.2
+  sensibilidad_publicidad: 0.5
+
+partida:
+  rondas_totales: 12
+  tiempo_decision_segundos: 180
+
+costos:
+  fijo: 1000
+  variable: 30

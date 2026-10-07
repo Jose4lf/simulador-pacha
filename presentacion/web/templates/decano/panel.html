@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Panel de Decano</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/decano.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="decano-body">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma">
+                <span>🇧🇴</span>
+                <span>Español</span>
+                <span class="flecha">▾</span>
+            </div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Decano</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="contenedor">
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Colapsar/Expandir menú">
+    ☰
+</button>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+
+                <a href="{{ url_for('decano.panel') }}" class="sidebar-item activo">
+                    <span class="sidebar-icon">🏠</span>
+                    <span class="sidebar-label">Inicio</span>
+                </a>
+
+                <!-- Profesores con submenú -->
+                <div class="sidebar-item sidebar-item-padre" onclick="toggleSubmenu('sub-profesores')">
+                    <span class="sidebar-icon">🎓</span>
+                    <span class="sidebar-label">Profesores</span>
+                    <span class="sidebar-arrow">▾</span>
+                </div>
+                <div class="sidebar-submenu" id="sub-profesores">
+                    <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem">👥 Ver todos</a>
+                    <a href="{{ url_for('decano.agregar_profesor') }}" class="sidebar-subitem">➕ Agregar</a>
+                    <a href="{{ url_for('decano.editar_profesor_selector') }}" class="sidebar-subitem">✏️ Editar</a>
+                </div>
+
+                <a href="{{ url_for('decano.permisos') }}" class="sidebar-item">
+                    <span class="sidebar-icon">🔐</span>
+                    <span class="sidebar-label">Permisos Asignados</span>
+                </a>
+
+                <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simulaciones</span>
+                </a>
+
+                <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item">
+                    <span class="sidebar-icon">🔑</span>
+                    <span class="sidebar-label">Administrar Contraseña</span>
+                </a>
+
+                <a href="{{ url_for('decano.config') }}" class="sidebar-item">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span class="sidebar-label">Configuración</span>
+                </a>
+
+            </nav>
+            <div class="sidebar-footer">
+                <p>© PACHA 2026</p>
+                <p>v1.0</p>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-contenido">
+
+            <!-- Bienvenida -->
+            <div class="bienvenida">
+                <h1 class="bienvenida-titulo">¡Hola!</h1>
+                <p class="bienvenida-texto">
+                    Para comenzar, haz clic en el menú de la izquierda, 
+                    o en el ícono de tres líneas horizontales en la parte superior izquierda.
+                </p>
+            </div>
+
+            <!-- Tarjetas de estadísticas -->
+            <section class="stats-grid">
+                <div class="stat-card stat-profesores">
+                    <div class="stat-icono">🎓</div>
+                    <div class="stat-contenido">
+                        <div class="stat-etiqueta">PROFESORES</div>
+                        <div class="stat-valor">{{ stats.total_profesores }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-alumnos">
+                    <div class="stat-icono">👤</div>
+                    <div class="stat-contenido">
+                        <div class="stat-etiqueta">ALUMNOS</div>
+                        <div class="stat-valor">{{ stats.total_alumnos }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-usuarios">
+                    <div class="stat-icono">👥</div>
+                    <div class="stat-contenido">
+                        <div class="stat-etiqueta">USUARIOS</div>
+                        <div class="stat-valor">{{ stats.total_usuarios }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-simuladores">
+                    <div class="stat-icono">📊</div>
+                    <div class="stat-contenido">
+                        <div class="stat-etiqueta">SIMULADORES</div>
+                        <div class="stat-valor">{{ stats.total_simuladores }}</div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+# Core: Dominio puro (reglas de negocio, sin Flask, sin BD)

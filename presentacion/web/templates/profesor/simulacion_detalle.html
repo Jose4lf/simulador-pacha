@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PACHA - Panel de Control</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/profesor.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="profesor-body">
+    <header class="header">
+      <div class="header-izq">
+        <span class="logo-icono">⛰️</span>
+        <span class="logo-texto">PACHA</span>
+      </div>
+      <div class="header-der">
+        <div class="header-idioma">
+          <span>🇧🇴</span><span>Español</span><span class="flecha">▾</span>
+        </div>
+        <div class="header-usuario">
+          <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+          <div class="datos">
+            <div class="nombre">{{ nombre }}</div>
+            <div class="rol">Profesor</div>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+      </div>
+    </header>
+
+    <div class="contenedor">
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"
+            ><span class="sidebar-icon">🏠</span
+            ><span class="sidebar-label">Inicio</span></a
+          >
+          <div
+            class="sidebar-item sidebar-item-padre activo abierto"
+            onclick="toggleSubmenu('sub-simuladores')"
+          >
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Simuladores</span>
+            <span class="sidebar-arrow">▴</span>
+          </div>
+          <div class="sidebar-submenu abierto" id="sub-simuladores">
+            <a
+              href="{{ url_for('profesor.simuladores') }}"
+              class="sidebar-subitem"
+              >📋 Lista completa</a
+            >
+            <a
+              href="{{ url_for('profesor.simulaciones') }}"
+              class="sidebar-subitem activo"
+              >▶️ Mis simulaciones</a
+            >
+            <a
+              href="{{ url_for('profesor.nueva_simulacion') }}"
+              class="sidebar-subitem"
+              >➕ Nueva simulación</a
+            >
+          </div>
+          <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"
+            ><span class="sidebar-icon">🔐</span
+            ><span class="sidebar-label">Administrar Contraseña</span></a
+          >
+        </nav>
+        <div class="sidebar-footer">
+          <p>© PACHA 2026</p>
+          <p>v1.0</p>
+        </div>
+      </aside>
+
+      <main class="main-contenido">
+        <div class="page-header">
+          <h1 class="page-title">Panel de Control</h1>
+          <p class="page-subtitle">
+            {{ industria.nombre }} — {{ industria.simulador_codigo|upper }}
+          </p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %} {% endif %} {% endwith %}
+
+        <!-- 4 TARJETAS DE CONTROL -->
+        <section class="simulacion-cards">
+          <!-- INDUSTRIA -->
+          <div class="sim-card sim-card-industria">
+            <div class="sim-card-etiqueta">📈 INDUSTRIA</div>
+            <div class="sim-card-valor">{{ industria.nombre }}</div>
+            <div class="sim-card-subtexto">
+              {{ industria.total_equipos }} equipos registrados
+            </div>
+          </div>
+
+          <!-- DECISIONES -->
+          <div class="sim-card sim-card-decisiones">
+            <div class="sim-card-etiqueta">
+              ✅ DECISIONES
+              <label
+                class="toggle-mini"
+                style="float: right"
+                title="Permitir envío de decisiones"
+              >
+                <input
+                  type="checkbox"
+                  {%
+                  if
+                  industria.permitir_envio
+                  %}checked{%
+                  endif
+                  %}
+                  onchange="togglePermitirEnvio()"
+                />
+                <span class="toggle-mini-slider"></span>
+              </label>
+            </div>
+            <div class="sim-card-valor">
+              {% if industria.equipos_decidieron == industria.total_equipos and
+              industria.total_equipos > 0 %} ¡Listo! {% else %} Faltan
+              Equipos... {% endif %}
+            </div>
+            <div class="sim-card-subtexto">
+              {{ industria.equipos_decidieron }} de {{ industria.total_equipos
+              }} decisiones recibidas
+            </div>
+          </div>
+
+          <!-- SIMULACIÓN -->
+          <div class="sim-card sim-card-simulacion">
+            <div class="sim-card-etiqueta">🎯 SIMULACIÓN</div>
+            <button class="btn-correr" onclick="correrSimulacion()">
+              ▶ CORRER SIMULACIÓN
+            </button>
+            <div class="sim-card-subtexto">
+              Año Actual: {{ industria.anio_actual }} | Número de Decisiones: {{
+              industria.anio_actual + 1 }}
+            </div>
+          </div>
+
+          <!-- MANTENIMIENTO -->
+          <div class="sim-card sim-card-mantenimiento">
+            <div class="sim-card-etiqueta">⚙️ MANTENIMIENTO</div>
+            <button
+              class="btn-acciones"
+              onclick="toggleAccionesMantenimiento()"
+            >
+              🔧 ACCIONES
+            </button>
+            <div
+              id="acciones-mantenimiento"
+              style="display: none; margin-top: 12px"
+            >
+              <form
+                action="{{ url_for('profesor.eliminar_simulacion', industria_id=industria.id) }}"
+                method="POST"
+                onsubmit="
+                  return confirm(
+                    '¿ELIMINAR esta simulación y TODOS sus datos? Esta acción no se puede deshacer.',
+                  );
+                "
+              >
+                <button
+                  type="submit"
+                  class="btn-acciones"
+                  style="background: #f6c6d0; color: #8b2234; width: 100%"
+                >
+                  🗑️ ELIMINAR
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESULTADOS GENERALES -->
+        <section class="card">
+          <div class="sim-card-etiqueta" style="margin-bottom: 12px">
+            📊 RESULTADOS GENERALES
+          </div>
+          <select
+            style="
+              width: 100%;
+              padding: 12px;
+              border-radius: 10px;
+              border: 2px solid #b9ddf4;
+              font-family: &quot;Patrick Hand&quot;;
+              font-size: 15px;
+            "
+          >
+            <option>Resultados Generales</option>
+          </select>
+        </section>
+
+        <!-- TOMAR DECISIONES DE LAS FIRMAS -->
+        <section class="card">
+          <div class="sim-card-etiqueta" style="margin-bottom: 15px">
+            🏢 TOMAR DECISIONES DE LAS FIRMAS
+          </div>
+
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+              gap: 12px;
+            "
+          >
+            {% for eq in industria.equipos %}
+            <div
+              style="background:#faf8fc; padding:15px; border-radius:12px; border-left:4px solid 
+                        {% if eq.ya_decidio %}#BFE8D1{% else %}#B9DDF4{% endif %};"
+            >
+              <div
+                style="font-weight: bold; font-size: 14px; margin-bottom: 6px"
+              >
+                EQUIPO {{ eq.numero }}
+              </div>
+              <div style="font-size: 12px; color: #666">
+                {% if eq.ya_decidio %} ✓ Decidió {% else %} Pendiente {% endif
+                %}
+              </div>
+              <div style="font-size: 11px; color: #999; margin-top: 6px">
+                {{ eq.nombre_empresa }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <!-- BOTONES DE NAVEGACIÓN -->
+        <div style="display: flex; gap: 12px; margin-top: 25px">
+          <a
+            href="{{ url_for('profesor.decisiones', industria_id=industria.id) }}"
+            class="btn-primario"
+            style="background: #bfe8d1"
+          >
+            📝 VER DECISIONES
+          </a>
+          <a
+            href="{{ url_for('profesor.resultados', industria_id=industria.id) }}"
+            class="btn-primario"
+            style="background: #fff1c7; color: #8b6914"
+          >
+            📊 VER RESULTADOS
+          </a>
+          <a
+            href="{{ url_for('profesor.importar_alumnos_form', industria_id=industria.id) }}"
+            class="btn-primario"
+            style="background: #b9ddf4; color: #2c5f7d"
+          >
+            📥 IMPORTAR ALUMNOS
+          </a>
+          <a
+            href="{{ url_for('profesor.exportar_resultados_csv', industria_id=industria.id) }}"
+            class="btn-primario"
+            style="background: #c9b6e4"
+          >
+            📥 EXPORTAR CSV
+          </a>
+          <a
+            href="{{ url_for('profesor.simulaciones') }}"
+            class="btn-secundario"
+          >
+            ← VOLVER
+          </a>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        const padre = submenu.previousElementSibling;
+        const arrow = padre.querySelector(".sidebar-arrow");
+        if (submenu.classList.contains("abierto")) {
+          submenu.classList.remove("abierto");
+          padre.classList.remove("abierto");
+          if (arrow) arrow.textContent = "▾";
+        } else {
+          submenu.classList.add("abierto");
+          padre.classList.add("abierto");
+          if (arrow) arrow.textContent = "▴";
+        }
+      }
+
+      function togglePermitirEnvio() {
+        fetch(
+          '{{ url_for("profesor.toggle_envio", industria_id=industria.id) }}',
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        )
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.error) {
+              alert(data.error);
+              return;
+            }
+            mostrarToast(
+              `Envío ${data.permitir_envio ? "habilitado" : "deshabilitado"}`,
+              "exito",
+            );
+          });
+      }
+
+      function correrSimulacion() {
+        if (
+          !confirm(
+            "¿Procesar la ronda {{ industria.anio_actual }}? Se calcularán los resultados de todos los equipos.",
+          )
+        ) {
+          return;
+        }
+
+        // Enviar formulario POST para procesar
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action =
+          '{{ url_for("profesor.procesar_ronda", industria_id=industria.id) }}';
+        document.body.appendChild(form);
+        form.submit();
+      }
+
+      function toggleAccionesMantenimiento() {
+        const div = document.getElementById("acciones-mantenimiento");
+        div.style.display = div.style.display === "none" ? "block" : "none";
+      }
+    </script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+  </body>
+</html>

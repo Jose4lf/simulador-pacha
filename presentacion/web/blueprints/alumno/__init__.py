@@ -1,0 +1,1 @@
+﻿# Blueprint del alumno

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Manual del Alumno</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alumno.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="alumno-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'A' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Alumno</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('alumno.panel') }}" class="sidebar-item">
+                    <span class="sidebar-icon">🏠</span>
+                    <span class="sidebar-label">Inicio</span>
+                </a>
+                <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item">
+                    <span class="sidebar-icon">📝</span>
+                    <span class="sidebar-label">Decisiones</span>
+                </a>
+                <a href="{{ url_for('alumno.manual') }}" class="sidebar-item activo">
+                    <span class="sidebar-icon">📖</span>
+                    <span class="sidebar-label">Manual</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© PACHA 2026</p>
+                <p>v1.0</p>
+            </div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <h1 class="panel-titulo">Manual del Alumno</h1>
+            <p class="panel-subtitulo">MARKESTRATED</p>
+
+            <section class="seccion-reportes">
+                <h2 class="seccion-titulo"><span>🎯</span> Objetivo</h2>
+                <p style="font-size:16px; line-height:1.7;">
+                    Tu equipo administra una empresa que compite en el mercado de refrescos.
+                    El objetivo es <strong>maximizar el beneficio acumulado</strong> durante los 10 años
+                    de simulación tomando decisiones estratégicas.
+                </p>
+            </section>
+
+            <section class="seccion-reportes">
+                <h2 class="seccion-titulo"><span>🔄</span> Ciclo de cada año</h2>
+                <ol style="font-size:15px; line-height:2; padding-left:25px;">
+                    <li>Analiza el <strong>reporte del año anterior</strong></li>
+                    <li>Toma <strong>decisiones</strong> de marketing por cada marca</li>
+                    <li>Envía tu decisión (el profesor procesará la ronda)</li>
+                    <li>Recibe el <strong>reporte del nuevo año</strong></li>
+                    <li>Repite el ciclo</li>
+                </ol>
+            </section>
+
+            <section class="seccion-reportes">
+                <h2 class="seccion-titulo"><span>📝</span> Variables de decisión</h2>
+
+                <h3 style="font-family:'Amatic SC'; color:#C9B6E4; font-size:22px; margin-top:20px;">💲 Precio (Bs.)</h3>
+                <p style="font-size:15px; line-height:1.7;">
+                    Precio de venta de tu producto. <strong>Precio bajo = más volumen, menos margen</strong>.
+                    Precio alto = menos volumen, más margen.
+                </p>
+
+                <h3 style="font-family:'Amatic SC'; color:#C9B6E4; font-size:22px; margin-top:20px;">📢 Publicidad (Bs.)</h3>
+                <p style="font-size:15px; line-height:1.7;">
+                    Inversión en marketing. Aumenta el atractivo de la marca.
+                    Tiene <strong>efecto de inercia</strong> (dura varios años).
+                </p>
+
+                <h3 style="font-family:'Amatic SC'; color:#C9B6E4; font-size:22px; margin-top:20px;">🔬 I + D (Bs.)</h3>
+                <p style="font-size:15px; line-height:1.7;">
+                    Inversión en innovación (nuevos sabores, empaques).
+                    Impacto a largo plazo en la calidad percibida.
+                </p>
+
+                <h3 style="font-family:'Amatic SC'; color:#C9B6E4; font-size:22px; margin-top:20px;">🏭 Producción (Unidades)</h3>
+                <p style="font-size:15px; line-height:1.7;">
+                    Cantidad a fabricar. Si produces de más, queda inventario.
+                    Si produces de menos, pierdes ventas.
+                </p>
+            </section>
+
+            <section class="seccion-reportes">
+                <h2 class="seccion-titulo"><span>⚠️</span> Reglas Especiales del Año 1</h2>
+                <div class="aviso-reglas">
+                    <ul>
+                        <li>📈 <strong>Precio:</strong> Solo puede subir hasta 4.5% (inflación)</li>
+                        <li>🔬 <strong>I+D:</strong> Bloqueado</li>
+                        <li>📢 <strong>Publicidad:</strong> Bloqueada</li>
+                        <li>🏭 <strong>Producción:</strong> Bloqueada</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="seccion-reportes">
+                <h2 class="seccion-titulo"><span>📚</span> Glosario</h2>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px;">
+                    <div style="background:#faf8fc; padding:15px; border-radius:10px; border-left:3px solid #C9B6E4;">
+                        <strong>Cuota de Mercado</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">% de ventas totales del mercado que corresponden a tu marca.</p>
+                    </div>
+                    <div style="background:#faf8fc; padding:15px; border-radius:10px; border-left:3px solid #BFE8D1;">
+                        <strong>Beneficio</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Ingresos - Costos (fijo + variable + publicidad + I+D).</p>
+                    </div>
+                    <div style="background:#faf8fc; padding:15px; border-radius:10px; border-left:3px solid #F6C6D0;">
+                        <strong>Inventario</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Unidades producidas que no se vendieron.</p>
+                    </div>
+                    <div style="background:#faf8fc; padding:15px; border-radius:10px; border-left:3px solid #FFF1C7;">
+                        <strong>Efecto de Inercia</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Los efectos de la publicidad duran varios años.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div style="margin-top:25px; text-align:center;">
+                <a href="{{ url_for('alumno.panel') }}" class="btn-primario">← VOLVER AL PANEL</a>
+            </div>
+
+        </main>
+    </div>
+  <!-- Toast notifications -->
+    <script src="{{ url_for('static', filename='js/toast_alumno.js') }}"></script>
+</body>
+</html>

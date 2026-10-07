@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Agregar Profesor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/decano.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="decano-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Decano</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('decano.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre activo abierto">
+                    <span class="sidebar-icon">🎓</span><span class="sidebar-label">Profesores</span><span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto">
+                    <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem">👥 Ver todos</a>
+                    <a href="{{ url_for('decano.agregar_profesor') }}" class="sidebar-subitem activo">➕ Agregar</a>
+                    <a href="{{ url_for('decano.editar_profesor_selector') }}" class="sidebar-subitem">✏️ Editar</a>
+                </div>
+                <a href="{{ url_for('decano.permisos') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Permisos</span></a>
+                <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item"><span class="sidebar-icon">📊</span><span class="sidebar-label">Simulaciones</span></a>
+                <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔑</span><span class="sidebar-label">Contraseñas</span></a>
+                <a href="{{ url_for('decano.config') }}" class="sidebar-item"><span class="sidebar-icon">⚙️</span><span class="sidebar-label">Config</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+            <div class="page-header">
+                <h1 class="page-title">Agregar Simulación a Profesor</h1>
+                <p class="page-subtitle">El Usuario del Profesor es la clave principal. No podrá cambiarse después.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('decano.crear_profesor') }}" method="POST" class="form-profesor">
+
+                <div class="form-row-2">
+                    <div class="campo">
+                        <label>Usuario del Profesor</label>
+                        <input type="text" name="username" required autocomplete="off" class="input-mayusculas">
+                        <small class="hint">Será la clave de identificación. No editable después.</small>
+                    </div>
+                    <div class="campo">
+                        <label>Email del Profesor</label>
+                        <input type="email" name="email" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="campo">
+                        <label>Nombre Completo del Profesor</label>
+                        <input type="text" name="nombre" required autocomplete="off" class="input-mayusculas">
+                    </div>
+                    <div class="campo">
+                        <label>Contraseña Inicial</label>
+                        <input type="password" name="password" required>
+                    </div>
+                </div>
+
+                <div class="form-row-toggles">
+                    <div class="campo">
+                        <label>Bloqueado</label>
+                        <label class="toggle">
+                            <input type="checkbox" name="bloqueado">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">Bloquear acceso</span>
+                        </label>
+                    </div>
+                    <div class="campo">
+                        <label>Status</label>
+                        <label class="toggle">
+                            <input type="checkbox" name="activo" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">Activo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="campo campo-full">
+                    <label>Simuladores Asignados <span class="obligatorio">*</span></label>
+                    <p class="hint">Seleccione mínimo 1 simulador</p>
+
+                    <div class="simuladores-lista">
+                        {% if simuladores %}
+                            {% for sim in simuladores %}
+                            <label class="simulador-item {% if sim.estado != 'en_desarrollo' %}simulador-item-disabled{% endif %}">
+                                <input type="checkbox" name="simuladores" value="{{ sim.id }}"
+                                       {% if sim.estado != 'en_desarrollo' %}disabled{% endif %}>
+                                <div class="simulador-info">
+                                    <div class="simulador-nombre">{{ sim.nombre }}</div>
+                                    <div class="simulador-desc">{{ sim.descripcion }}</div>
+                                </div>
+                                {% if sim.estado == 'en_desarrollo' %}
+                                <span class="simulador-badge sim-badge-dev">En desarrollo</span>
+                                {% else %}
+                                <span class="simulador-badge sim-badge-prox">Próximamente</span>
+                                {% endif %}
+                            </label>
+                            {% endfor %}
+                        {% else %}
+                            <div style="padding:20px; background:#F6C6D0; border-radius:10px; color:#8b2234;">
+                                ⚠️ No hay simuladores en la base de datos.
+                                Ejecuta: <code>python scripts/cargar_simuladores.py</code>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="acciones-form">
+                    <button type="submit" class="btn-primario">✓ GUARDAR</button>
+                    <a href="{{ url_for('decano.profesores') }}" class="btn-secundario">CANCELAR</a>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.input-mayusculas').forEach(function(input) {
+                input.addEventListener('input', function() {
+                    const inicio = this.selectionStart;
+                    const fin = this.selectionEnd;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(inicio, fin);
+                });
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+
+</body>
+</html>

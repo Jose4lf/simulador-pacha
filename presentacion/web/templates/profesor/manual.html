@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Manual del Profesor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="profesor-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Profesor</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre" onclick="toggleSubmenu('sub-simuladores')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simuladores</span>
+                    <span class="sidebar-arrow">▾</span>
+                </div>
+                <div class="sidebar-submenu" id="sub-simuladores">
+                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
+                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem">▶️ Mis simulaciones</a>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem">➕ Nueva simulación</a>
+                    <a href="{{ url_for('profesor.manual') }}" class="sidebar-subitem activo">📖 Manual de uso</a>
+                </div>
+                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Administrar Contraseña</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Manual de Uso</h1>
+                <p class="page-subtitle">Guía completa para gestionar tus simulaciones</p>
+            </div>
+
+            <section class="card">
+                <h2 style="font-family:'Dancing Script'; color:#B9DDF4; font-size:32px; margin-bottom:15px;">
+                    📖 Bienvenido, Profesor
+                </h1>
+                <p style="font-size:16px; line-height:1.7; color:#514653; margin-bottom:20px;">
+                    PACHA te permite gestionar simulaciones de negocios para tus estudiantes.
+                    Cada simulación es una <strong>industria</strong> donde varios equipos compiten por el mercado.
+                </p>
+
+                <h3 style="font-family:'Dancing Script'; color:#C9B6E4; font-size:24px; margin-top:25px; margin-bottom:12px;">
+                    🎯 Flujo de trabajo
+                </h3>
+                <div style="background:#faf8fc; padding:20px; border-radius:12px; border-left:4px solid #B9DDF4;">
+                    <ol style="padding-left:20px; font-size:15px; line-height:2; color:#514653;">
+                        <li><strong>Crea una simulación</strong> con nombre y número de equipos</li>
+                        <li>El sistema <strong>genera automáticamente</strong> los equipos y marcas con el mismo escenario</li>
+                        <li>Los <strong>alumnos envían sus decisiones</strong> (precio, publicidad, I+D, producción)</li>
+                        <li>Tú <strong>procesas la ronda</strong> (botón "CORRER SIMULACIÓN")</li>
+                        <li>El sistema <strong>calcula los resultados</strong> y los reparte entre los equipos</li>
+                        <li>Los alumnos ven sus reportes y toman nuevas decisiones</li>
+                        <li>Repite por <strong>10 años</strong> (o los que definas)</li>
+                    </ol>
+                </div>
+
+                <h3 style="font-family:'Dancing Script'; color:#C9B6E4; font-size:24px; margin-top:25px; margin-bottom:12px;">
+                    📊 Módulos disponibles
+                </h3>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px;">
+                    <div style="background:#faf8fc; padding:18px; border-radius:12px; border-left:4px solid #B9DDF4;">
+                        <strong style="font-size:15px;">📋 Lista completa</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Ver todos los simuladores disponibles en el sistema.</p>
+                    </div>
+                    <div style="background:#faf8fc; padding:18px; border-radius:12px; border-left:4px solid #BFE8D1;">
+                        <strong style="font-size:15px;">▶️ Mis simulaciones</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Gestionar tus simulaciones creadas.</p>
+                    </div>
+                    <div style="background:#faf8fc; padding:18px; border-radius:12px; border-left:4px solid #C9B6E4;">
+                        <strong style="font-size:15px;">➕ Nueva simulación</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Crear una industria con equipos automáticos.</p>
+                    </div>
+                    <div style="background:#faf8fc; padding:18px; border-radius:12px; border-left:4px solid #F6C6D0;">
+                        <strong style="font-size:15px;">🔐 Administrar Contraseña</strong>
+                        <p style="font-size:13px; color:#666; margin-top:6px;">Resetear y exportar credenciales de alumnos.</p>
+                    </div>
+                </div>
+
+                <h3 style="font-family:'Dancing Script'; color:#C9B6E4; font-size:24px; margin-top:25px; margin-bottom:12px;">
+                    🏭 Panel de Control de una Simulación
+                </h3>
+                <p style="font-size:15px; line-height:1.7; margin-bottom:12px;">
+                    Al abrir una simulación, encuentras 4 tarjetas:
+                </p>
+                <ul style="font-size:15px; line-height:2; padding-left:20px;">
+                    <li><strong>📈 Industria:</strong> Nombre y equipos de la simulación</li>
+                    <li><strong>✅ Decisiones:</strong> Estado del envío (contador de equipos que ya decidieron)</li>
+                    <li><strong>🎯 Simulación:</strong> Botón <strong>CORRER SIMULACIÓN</strong> para procesar la ronda</li>
+                    <li><strong>⚙️ Mantenimiento:</strong> Acciones como eliminar simulación</li>
+                </ul>
+
+                <h3 style="font-family:'Dancing Script'; color:#C9B6E4; font-size:24px; margin-top:25px; margin-bottom:12px;">
+                    ⚠️ Reglas del Año 1
+                </h3>
+                <div class="aviso-info">
+                    <strong>Importante:</strong> En el <strong>primer año (Año 0)</strong> de Markestrated, los alumnos solo pueden modificar el precio (hasta la inflación). Los campos de I+D, publicidad y producción están bloqueados.
+                    <br><br>
+                    A partir del <strong>Año 2</strong>, todas las decisiones se liberan.
+                </div>
+
+                <h3 style="font-family:'Dancing Script'; color:#C9B6E4; font-size:24px; margin-top:25px; margin-bottom:12px;">
+                    💡 Consejos pedagógicos
+                </h3>
+                <ul style="font-size:15px; line-height:2; padding-left:20px;">
+                    <li>Fomenta el análisis de reportes antes de tomar decisiones</li>
+                    <li>Realiza juntas de equipo para discutir estrategias</li>
+                    <li>Usa el Año 1 como período de aprendizaje sin riesgo</li>
+                    <li>Pide a cada equipo justificar sus decisiones</li>
+                    <li>Compara estrategias entre equipos al final</li>
+                </ul>
+
+            </section>
+
+            <div style="margin-top:20px;">
+                <a href="{{ url_for('profesor.panel') }}" class="btn-secundario">← Volver al Inicio</a>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+    </script>
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

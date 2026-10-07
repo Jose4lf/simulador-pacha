@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Decisiones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="profesor-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Profesor</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre activo abierto" onclick="toggleSubmenu('sub-simuladores')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simuladores</span>
+                    <span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto" id="sub-simuladores">
+                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
+                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem activo">▶️ Mis simulaciones</a>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem">➕ Nueva simulación</a>
+                </div>
+                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Administrar Contraseña</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Decisiones de las Firmas</h1>
+                <p class="page-subtitle">{{ data.industria_nombre }} — Año {{ data.anio }}</p>
+            </div>
+
+            <section class="card">
+                <div class="sim-card-etiqueta" style="margin-bottom:15px;">
+                    📊 ESTADO DE DECISIONES
+                </div>
+
+                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
+                    <div style="background:#BFE8D1; padding:15px 25px; border-radius:10px;">
+                        <div style="font-size:11px; color:#2c5f3d; letter-spacing:1px;">DECIDIERON</div>
+                        <div style="font-family:'Dancing Script'; font-size:28px; color:#2c5f3d; font-weight:700;">
+                            {{ data.equipos_decidieron }} / {{ data.total_equipos }}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px;">
+                    {% for eq in data.equipos %}
+                    <div style="background:#faf8fc; padding:18px; border-radius:12px; 
+                                border-left:4px solid {% if eq.ya_decidio %}#BFE8D1{% else %}#F6C6D0{% endif %};">
+                        <div style="font-weight:bold; font-size:16px; margin-bottom:8px;">
+                            EQUIPO {{ eq.numero }}
+                        </div>
+                        <div style="font-size:13px; color:#666; margin-bottom:8px;">
+                            {{ eq.nombre_empresa }}
+                        </div>
+                        <div style="font-size:12px;">
+                            {% if eq.ya_decidio %}
+                            <span class="badge badge-ok">✅ Decidió</span>
+                            {% else %}
+                            <span class="badge badge-error">⏳ Pendiente</span>
+                            {% endif %}
+                        </div>
+                        {% if eq.fecha_decision %}
+                        <div style="font-size:11px; color:#999; margin-top:8px;">
+                            {{ eq.fecha_decision }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div style="margin-top:20px;">
+                <a href="{{ url_for('profesor.detalle_simulacion', industria_id=data.industria_id) }}" 
+                   class="btn-secundario">← Volver al Panel</a>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+    </script>
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

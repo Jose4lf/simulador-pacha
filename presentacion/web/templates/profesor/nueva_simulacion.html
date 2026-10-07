@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Nueva Simulación</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="profesor-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Profesor</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre activo abierto" onclick="toggleSubmenu('sub-simuladores')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simuladores</span>
+                    <span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto" id="sub-simuladores">
+                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
+                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem">▶️ Mis simulaciones</a>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem activo">➕ Nueva simulación</a>
+                </div>
+                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Administrar Contraseña</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Nueva Simulación</h1>
+                <p class="page-subtitle">Crea una industria con equipos y marcas asignadas automáticamente</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div class="card">
+                <form action="{{ url_for('profesor.crear_simulacion') }}" method="POST" class="form-profesor">
+
+                    <!-- Nombre de la industria -->
+                   <div class="form-campo">
+                        <label>Nombre de la Industria <span style="color:#e74c3c;">*</span></label>
+                        <input type="text" name="nombre" required autocomplete="off" class="input-mayusculas">
+                        <small class="form-hint">Será el identificador único de esta simulación</small>
+                    </div>
+                    <!-- Simulador (solo Markestrated) -->
+                    <div class="form-campo">
+                        <label>Simulador</label>
+                        <select name="simulador" required>
+                            <option value="markestrated">🟢 Markestrated - Estrategia de Marketing</option>
+                        </select>
+                        <small class="form-hint">Solo Markestrated está disponible por el momento</small>
+                    </div>
+
+                    <!-- Número de equipos -->
+                    <div class="form-campo">
+                        <label>Número de Equipos <span style="color:#e74c3c;">*</span></label>
+                        <input type="number" name="num_equipos" value="5" min="2" max="10" required>
+                        <small class="form-hint">Entre 2 y 10 equipos. Cada equipo tendrá 2 marcas.</small>
+                    </div>
+
+                    <!-- Info del escenario -->
+                    <div class="aviso-info">
+                        <strong>📋 Escenario Markestrated</strong>
+                        <p>Todos los equipos parten del MISMO escenario inicial:</p>
+                        <ul>
+                            <li>Mercado total: <strong>1,000,000 unidades</strong></li>
+                            <li>Segmentos: <strong>Popular, Medio, Premium</strong></li>
+                            <li>2 marcas por equipo con valores iniciales iguales</li>
+                            <li>10 períodos (años) de simulación</li>
+                        </ul>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="acciones-form">
+                        <button type="submit" class="btn-primario">✓ CREAR SIMULACIÓN</button>
+                        <a href="{{ url_for('profesor.simulaciones') }}" class="btn-secundario">CANCELAR</a>
+                    </div>
+
+                </form>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+          // Auto-conversión a MAYÚSCULAS
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.input-mayusculas').forEach(function(input) {
+            input.addEventListener('input', function() {
+                const inicio = this.selectionStart;
+                const fin = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(inicio, fin);
+            });
+        });
+    });
+    </script>
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

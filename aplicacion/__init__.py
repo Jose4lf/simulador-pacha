@@ -1,0 +1,1 @@
+# Aplicación: Casos de uso (qué puede hacer el jugador)

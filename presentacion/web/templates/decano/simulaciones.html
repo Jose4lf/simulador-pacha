@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Simulaciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/decano.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="decano-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Decano</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Colapsar/Expandir menú">
+    ☰
+</button>
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('decano.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre" onclick="toggleSubmenu('sub-profesores')">
+                    <span class="sidebar-icon">🎓</span><span class="sidebar-label">Profesores</span><span class="sidebar-arrow">▾</span>
+                </div>
+                <div class="sidebar-submenu" id="sub-profesores">
+                    <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem">👥 Ver todos</a>
+                    <a href="{{ url_for('decano.agregar_profesor') }}" class="sidebar-subitem">➕ Agregar</a>
+                    <a href="{{ url_for('decano.editar_profesor_selector') }}" class="sidebar-subitem">✏️ Editar</a>
+                </div>
+                <a href="{{ url_for('decano.permisos') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Permisos Asignados</span></a>
+                <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item activo"><span class="sidebar-icon">📊</span><span class="sidebar-label">Simulaciones</span></a>
+                <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔑</span><span class="sidebar-label">Administrar Contraseña</span></a>
+                <a href="{{ url_for('decano.config') }}" class="sidebar-item"><span class="sidebar-icon">⚙️</span><span class="sidebar-label">Configuración</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Simulaciones Disponibles</h1>
+                <p class="page-subtitle">{{ simuladores|length }} simulador(es) en el sistema</p>
+            </div>
+
+            <section class="simulaciones-grid">
+                {% for sim in simuladores %}
+                <div class="sim-card 
+                    {% if sim.estado == 'en_desarrollo' %}sim-card-dev{% else %}sim-card-prox{% endif %}">
+                    
+                    <div class="sim-card-header">
+                        <div class="sim-card-icono">
+                            {% if sim.estado == 'en_desarrollo' %}🟢{% else %}🔒{% endif %}
+                        </div>
+                        <div class="sim-card-estado">
+                            {% if sim.estado == 'en_desarrollo' %}
+                            <span class="estado-badge estado-dev">En desarrollo</span>
+                            {% else %}
+                            <span class="estado-badge estado-prox">Próximamente</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h2 class="sim-card-nombre">{{ sim.nombre }}</h2>
+                    <p class="sim-card-desc">{{ sim.descripcion }}</p>
+                    
+                    <div class="sim-card-footer">
+                        {% if sim.estado == 'en_desarrollo' %}
+                        <span class="sim-card-nota">✅ Disponible para asignar</span>
+                        {% else %}
+                        <span class="sim-card-nota">⏳ Disponible próximamente</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+        function toggleSidebar() {
+    document.body.classList.toggle('sidebar-colapsado');
+    // Guardar preferencia
+    localStorage.setItem('sidebar-colapsado', 
+        document.body.classList.contains('sidebar-colapsado'));
+}
+
+// Restaurar estado al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('sidebar-colapsado') === 'true') {
+        document.body.classList.add('sidebar-colapsado');
+    }
+});
+    </script>
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

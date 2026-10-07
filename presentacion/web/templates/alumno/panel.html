@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PACHA - Panel de Alumno</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/alumno.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body class="alumno-body">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-izq">
+        <span class="logo-icono">⛰️</span>
+        <span class="logo-texto">PACHA</span>
+      </div>
+      <div class="header-der">
+        <div class="header-idioma">
+          <span>🇧🇴</span><span>Español</span><span class="flecha">▾</span>
+        </div>
+        <div class="header-usuario">
+          <div class="avatar">{{ nombre[0] if nombre else 'A' }}</div>
+          <div class="datos">
+            <div class="nombre">{{ nombre }}</div>
+            <div class="rol">Alumno</div>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+      </div>
+    </header>
+
+    <div class="contenedor">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('alumno.panel') }}" class="sidebar-item activo">
+            <span class="sidebar-icon">🏠</span>
+            <span class="sidebar-label">Inicio</span>
+          </a>
+          <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item">
+            <span class="sidebar-icon">📝</span>
+            <span class="sidebar-label">Decisiones</span>
+          </a>
+          <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Estudios</span>
+          </a>
+          <a href="{{ url_for('alumno.manual') }}" class="sidebar-item">
+            <span class="sidebar-icon">📖</span>
+            <span class="sidebar-label">Manual</span>
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <p>© PACHA 2026</p>
+          <p>v1.0</p>
+        </div>
+      </aside>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <main class="main-contenido">
+        <!-- TÍTULO -->
+        <h1 class="panel-titulo">Panel de Alumno</h1>
+        <p class="panel-subtitulo">MARKESTRATED</p>
+        <!-- DEBUG TEMPORAL -->
+        <div
+          style="
+            background: #fff1c7;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+          "
+        >
+          <strong>🐛 DEBUG:</strong><br />
+          <strong>Equipo ID:</strong> {{ data.equipo.id }}<br />
+          <strong>Equipo Número:</strong> {{ data.equipo.numero }}<br />
+          <strong>Reportes recibidos:</strong> {{ reportes|length }}<br />
+          <strong>Años disponibles:</strong>
+          {% for r in reportes %}
+          <span
+            style="
+              background: #b9ddf4;
+              padding: 2px 8px;
+              border-radius: 4px;
+              margin: 2px;
+            "
+            >{{ r.anio }}</span
+          >
+          {% endfor %} {% if not reportes %}
+          <span style="color: red">❌ NINGUNO</span>
+          {% endif %}
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %} {% endif %} {% endwith %}
+
+        <!-- ============================================================
+                 1. TARJETAS DE ESTADO (INDUSTRIA, EQUIPO, AÑO, DECISIÓN)
+                 ============================================================ -->
+        <section class="panel-estado">
+          <div class="tarjeta-info tarjeta-industria">
+            <div class="tarjeta-etiqueta">📈 INDUSTRIA</div>
+            <div class="tarjeta-valor">{{ data.industria.nombre }}</div>
+          </div>
+
+          <div class="tarjeta-info tarjeta-equipo">
+            <div class="tarjeta-etiqueta">👥 EQUIPO</div>
+            <div class="tarjeta-valor">{{ data.equipo.numero }}</div>
+          </div>
+
+          <div class="tarjeta-info tarjeta-anio">
+            <div class="tarjeta-etiqueta">📅 AÑO</div>
+            <div class="tarjeta-valor">{{ data.industria.anio_actual }}</div>
+          </div>
+
+          {% if not data.industria.permitir_envio %}
+          <div class="tarjeta-accion tarjeta-bloqueada">
+            <div class="tarjeta-accion-titulo">🔒 BLOQUEADO</div>
+            <div class="tarjeta-accion-subtexto">Espera al profesor</div>
+          </div>
+          {% elif data.equipo.ya_decidio %}
+          <div class="tarjeta-accion tarjeta-esperando">
+            <div class="tarjeta-accion-titulo">✅ ENVIADO</div>
+            <div class="tarjeta-accion-subtexto">Esperando a otros equipos</div>
+          </div>
+          {% else %}
+          <a href="{{ url_for('alumno.decisiones') }}" class="tarjeta-accion">
+            <div class="tarjeta-accion-titulo">✍️ TOMAR DECISIONES</div>
+            <div class="tarjeta-accion-subtexto">
+              Número Decisión: {{ data.industria.anio_actual + 1 }}
+            </div>
+          </a>
+          {% endif %}
+        </section>
+
+        <!-- ============================================================
+                 2. REPORTES ANUALES
+                 ============================================================ -->
+        <section class="seccion-reportes">
+          <h2 class="seccion-titulo"><span>📊</span> Reportes Anuales</h2>
+
+          <p class="subtitulo-seccion">Años:</p>
+
+          <div class="botones-anios">
+            {% for i in range(0, data.industria.anio_maximo + 1) %} {% set
+            anio_disponible = false %} {% for r in reportes %} {% if r.anio == i
+            %} {% set anio_disponible = true %} {% endif %} {% endfor %} {% if
+            anio_disponible %}
+            <a
+              href="{{ url_for('alumno.reporte', anio=i) }}"
+              class="btn-anio disponible"
+            >
+              <span class="anio-numero">{{ i }}</span>
+              <span class="anio-label">Año</span>
+            </a>
+            {% else %}
+            <button class="btn-anio bloqueado" onclick="enProceso(event)">
+              <span class="anio-numero">{{ i }}</span>
+              <span class="anio-label">🔒</span>
+            </button>
+            {% endif %} {% endfor %}
+          </div>
+        </section>
+
+        <!-- ============================================================
+                 3. EQUIPOS QUE YA ENVIARON DECISIONES
+                 ============================================================ -->
+        <section class="seccion-reportes">
+          <h2 class="seccion-titulo">
+            <span>👥</span> Equipos que ya enviaron decisiones:
+          </h2>
+
+          <div class="equipos-grid">
+            {% for eq in equipos_industria %} {% if eq.id == data.equipo.id %}
+            <div class="equipo-item yo">
+              <div class="equipo-numero">Equipo {{ eq.numero }} (TÚ)</div>
+              <div class="equipo-estado">
+                {% if eq.ya_decidio %}✅ Enviado{% else %}⏳ Pendiente{% endif
+                %}
+              </div>
+            </div>
+            {% elif eq.ya_decidio %}
+            <div class="equipo-item decidio">
+              <div class="equipo-numero">Equipo {{ eq.numero }}</div>
+              <div class="equipo-estado">✅ Enviado</div>
+            </div>
+            {% else %}
+            <div class="equipo-item pendiente">
+              <div class="equipo-numero">Equipo {{ eq.numero }}</div>
+              <div class="equipo-estado">⏳ Pendiente</div>
+            </div>
+            {% endif %} {% endfor %}
+          </div>
+        </section>
+
+        <!-- ============================================================
+                 4. RESPALDO DE DECISIONES TOMADAS ANTERIORMENTE
+                 ============================================================ -->
+        <section class="seccion-reportes">
+          <h2 class="seccion-titulo">
+            <span>💾</span> Respaldo de decisiones tomadas anteriormente:
+          </h2>
+
+          <div class="botones-decisiones">
+            {% for i in range(1, data.industria.anio_actual + 1) %}
+            <button class="btn-decision" onclick="enProceso(event)">
+              DECISIÓN {{ i }}
+            </button>
+            {% endfor %} {% if data.industria.anio_actual == 0 %}
+            <p class="sin-decisiones">Aún no has tomado ninguna decisión.</p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- ============================================================
+                 5. RESULTADOS GENERALES (GRÁFICO)
+                 ============================================================ -->
+        <!-- ============================================================
+     5. RESULTADOS GENERALES (GRÁFICO + TABLA + PESTAÑAS)
+     ============================================================ -->
+        <section class="seccion-reportes">
+          <h2 class="seccion-titulo"><span>📈</span> Resultados Generales</h2>
+
+          <p class="subtitulo-seccion">CONTRIBUCIÓN NETA DE MARKETING ACUM.</p>
+
+          <!-- PESTAÑAS -->
+          <div class="tabs-resultados">
+            <button
+              class="tab-resultado activo"
+              onclick="cambiarTabResultado('resultado', this)"
+            >
+              📊 Resultado
+            </button>
+            <button
+              class="tab-resultado"
+              onclick="cambiarTabResultado('participantes', this)"
+            >
+              👥 Participantes
+            </button>
+          </div>
+
+          <!-- TAB 1: RESULTADO (Gráfico + Tabla) -->
+          <div id="tab-resultado" class="tab-resultado-contenido activo">
+            <div class="grafico-card">
+              <div class="grafico-contenedor grafico-alto">
+                <canvas id="grafico-contribucion"></canvas>
+              </div>
+            </div>
+
+            <div
+              id="tabla-resultados"
+              class="tabla-resultados-contenedor"
+            ></div>
+          </div>
+
+          <!-- TAB 2: PARTICIPANTES (Resumen por firma) -->
+          <div id="tab-participantes" class="tab-resultado-contenido">
+            <div
+              id="tabla-participantes"
+              class="tabla-participantes-contenedor"
+            ></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- TOAST -->
+    <script src="{{ url_for('static', filename='js/toast_alumno.js') }}"></script>
+
+    <!-- GRÁFICO -->
+    <!-- DATOS DEL GRÁFICO -->
+    <script id="datos-grafico" type="application/json">
+      {
+          "firmas": {{ contribuciones_por_firma | tojson }},
+          "periodos": {{ periodos | tojson }},
+          "participantes": {{ participantes | tojson }}
+      }
+    </script>
+
+    <!-- GRÁFICO, TABLAS Y PESTAÑAS -->
+    <script>
+      (function () {
+        function initTodo() {
+          const contenedor = document.getElementById("datos-grafico");
+          if (!contenedor) return;
+
+          let datos;
+          try {
+            datos = JSON.parse(contenedor.textContent);
+          } catch (e) {
+            console.error("Error parseando datos:", e);
+            return;
+          }
+
+          const datosFirmas = datos.firmas || {};
+          const periodos = datos.periodos || [0];
+          const participantes = datos.participantes || [];
+
+          const colores = [
+            "#B9DDF4", // Firma 1: Celeste
+            "#514653", // Firma 2: Ciruela
+            "#BFE8D1", // Firma 3: Menta
+            "#F39C12", // Firma 4: Naranja
+            "#C9B6E4", // Firma 5: Lavanda
+          ];
+
+          // ============================================================
+          // GRÁFICO
+          // ============================================================
+          const ctx = document.getElementById("grafico-contribucion");
+          if (ctx) {
+            const datasets = Object.keys(datosFirmas).map(
+              function (firma, idx) {
+                return {
+                  label: firma,
+                  data: datosFirmas[firma],
+                  borderColor: colores[idx % colores.length],
+                  backgroundColor: "transparent",
+                  borderWidth: 2,
+                  tension: 0.2,
+                  pointRadius: 5,
+                  pointBackgroundColor: colores[idx % colores.length],
+                  pointBorderColor: "#ffffff",
+                  pointBorderWidth: 1,
+                  pointHoverRadius: 8,
+                };
+              },
+            );
+
+            new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: periodos,
+                datasets: datasets,
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                  mode: "index",
+                  intersect: false,
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      font: { family: "'Patrick Hand', cursive", size: 12 },
+                      color: "#514653",
+                      callback: function (val) {
+                        return val.toLocaleString();
+                      },
+                    },
+                    grid: { color: "rgba(81, 70, 83, 0.08)" },
+                  },
+                  x: {
+                    ticks: {
+                      font: { family: "'Patrick Hand', cursive", size: 12 },
+                      color: "#514653",
+                    },
+                    title: {
+                      display: true,
+                      text: "Periodo",
+                      font: { family: "'Patrick Hand', cursive", size: 13 },
+                      color: "#514653",
+                    },
+                    grid: { display: false },
+                  },
+                },
+                plugins: {
+                  legend: {
+                    position: "right",
+                    align: "start",
+                    labels: {
+                      font: { family: "'Patrick Hand', cursive", size: 13 },
+                      color: "#514653",
+                      usePointStyle: true,
+                      pointStyle: "line",
+                      padding: 15,
+                      boxWidth: 30,
+                    },
+                  },
+                  tooltip: {
+                    backgroundColor: "#ffffff",
+                    titleColor: "#514653",
+                    bodyColor: "#514653",
+                    borderColor: "#C9B6E4",
+                    borderWidth: 2,
+                    titleFont: { family: "'Patrick Hand', cursive", size: 14 },
+                    bodyFont: { family: "'Patrick Hand', cursive", size: 13 },
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                      title: function (items) {
+                        return "Año " + items[0].label;
+                      },
+                      label: function (ctx) {
+                        return (
+                          " " +
+                          ctx.dataset.label +
+                          ": " +
+                          ctx.parsed.y.toLocaleString() +
+                          " unidades"
+                        );
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // ============================================================
+          // TABLA DE RESULTADOS (Firmas × Años)
+          // ============================================================
+          const contenedorTabla = document.getElementById("tabla-resultados");
+          if (contenedorTabla) {
+            let html = '<table class="tabla-contribuciones">';
+
+            html += "<thead><tr><th>Firmas</th>";
+            periodos.forEach(function (p) {
+              html += "<th>Año " + p + "</th>";
+            });
+            html += "</tr></thead><tbody>";
+
+            Object.keys(datosFirmas).forEach(function (firma) {
+              html += "<tr>";
+              html += '<td class="firma-cell">' + firma + "</td>";
+              datosFirmas[firma].forEach(function (valor) {
+                html += "<td>" + valor.toLocaleString() + ".</td>";
+              });
+              html += "</tr>";
+            });
+
+            html += "</tbody></table>";
+            contenedorTabla.innerHTML = html;
+          }
+
+          // ============================================================
+          // TABLA DE PARTICIPANTES
+          // ============================================================
+          const contenedorParticipantes = document.getElementById(
+            "tabla-participantes",
+          );
+          if (contenedorParticipantes && participantes.length > 0) {
+            let html = '<table class="tabla-participantes">';
+
+            html += "<thead><tr>";
+            html += "<th>Ranking</th>";
+            html += "<th>Firma</th>";
+            html += "<th>Marca(s)</th>";
+            html += "<th>Contribución Acum.</th>";
+            html += "<th>Porción Mercado</th>";
+            html += "<th>Ventas Totales</th>";
+            html += "</tr></thead><tbody>";
+
+            participantes.forEach(function (p) {
+              const medalla =
+                p.ranking === 1
+                  ? "🥇"
+                  : p.ranking === 2
+                    ? "🥈"
+                    : p.ranking === 3
+                      ? "🥉"
+                      : "#" + p.ranking;
+              const claseRank =
+                p.ranking === 1
+                  ? "rank-1"
+                  : p.ranking === 2
+                    ? "rank-2"
+                    : p.ranking === 3
+                      ? "rank-3"
+                      : "";
+              const esTuya = p.es_tuya ? "es-tuya" : "";
+
+              html += '<tr class="' + claseRank + " " + esTuya + '">';
+              html += '<td class="rank-cell">' + medalla + "</td>";
+              html +=
+                '<td class="firma-cell">' +
+                p.firma +
+                (p.es_tuya ? " (TÚ)" : "") +
+                "</td>";
+              html += "<td>" + p.marcas + "</td>";
+              html += "<td>" + p.contribucion.toLocaleString() + ".</td>";
+              html += "<td>" + p.porcion.toFixed(2) + "%</td>";
+              html += "<td>" + p.ventas.toLocaleString() + "</td>";
+              html += "</tr>";
+            });
+
+            html += "</tbody></table>";
+            contenedorParticipantes.innerHTML = html;
+          } else if (contenedorParticipantes) {
+            contenedorParticipantes.innerHTML =
+              '<div class="vacio" style="padding: 40px 20px;">' +
+              '<div class="vacio-icono">👥</div>' +
+              '<h3 class="vacio-titulo">Sin datos de participantes</h3>' +
+              '<p class="vacio-texto">Los datos aparecerán después de procesar la primera ronda.</p>' +
+              "</div>";
+          }
+        }
+
+        // Cambiar pestaña
+        window.cambiarTabResultado = function (tabId, boton) {
+          document.querySelectorAll(".tab-resultado").forEach(function (t) {
+            t.classList.remove("activo");
+          });
+          boton.classList.add("activo");
+
+          document
+            .querySelectorAll(".tab-resultado-contenido")
+            .forEach(function (t) {
+              t.classList.remove("activo");
+            });
+          document.getElementById("tab-" + tabId).classList.add("activo");
+        };
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initTodo);
+        } else {
+          initTodo();
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Tomar Decisiones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alumno.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="alumno-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'A' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Alumno</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('alumno.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item activo"><span class="sidebar-icon">📝</span><span class="sidebar-label">Decisiones</span></a>
+                <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item"><span class="sidebar-icon">📊</span><span class="sidebar-label">Estudios</span></a>
+                <a href="{{ url_for('alumno.manual') }}" class="sidebar-item"><span class="sidebar-icon">📖</span><span class="sidebar-label">Manual</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+
+            <h1 class="panel-titulo">Panel de Decisiones</h1>
+            <p class="panel-subtitulo">Período {{ data.industria.anio_actual }} — Decisión Nº {{ data.industria.anio_actual + 1 }}</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <section class="panel-estado">
+                <div class="tarjeta-info tarjeta-industria">
+                    <div class="tarjeta-etiqueta">📈 INDUSTRIA</div>
+                    <div class="tarjeta-valor">{{ data.industria.nombre }}</div>
+                </div>
+                <div class="tarjeta-info tarjeta-equipo">
+                    <div class="tarjeta-etiqueta">👥 EQUIPO</div>
+                    <div class="tarjeta-valor">{{ data.equipo.numero }}</div>
+                </div>
+                <div class="tarjeta-info tarjeta-anio">
+                    <div class="tarjeta-etiqueta">📅 PERIODO</div>
+                    <div class="tarjeta-valor">{{ data.industria.anio_actual }}</div>
+                </div>
+                <div class="tarjeta-info tarjeta-anio">
+                    <div class="tarjeta-etiqueta">✅ DECISIÓN</div>
+                    <div class="tarjeta-valor">{{ data.industria.anio_actual + 1 }}</div>
+                </div>
+            </section>
+
+            {% if data.industria.anio_actual == 0 %}
+            <div class="aviso-reglas">
+                <h4>⚠️ Reglas Especiales del Año 1</h4>
+                <ul>
+                    <li>📈 <strong>Precio:</strong> Modificable (hasta la inflación)</li>
+                    <li>🔬 <strong>I+D:</strong> Bloqueado</li>
+                    <li>📢 <strong>Publicidad:</strong> Bloqueada</li>
+                    <li>🏭 <strong>Producción:</strong> Bloqueada</li>
+                    <li>👥 <strong>Vendedores:</strong> Bloqueados</li>
+                    <li>🎯 <strong>Objetivos perceptuales:</strong> No disponibles</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('alumno.enviar_decision') }}" method="POST">
+
+                <!-- DECISIONES DE MARKETING -->
+                <section class="seccion-reportes">
+                    <h2 class="seccion-titulo"><span>📝</span> Decisiones de Marketing</h2>
+
+                    <table class="tabla-decisiones">
+                        <thead>
+                            <tr>
+                                <th>MARCA</th>
+                                <th>PROYECTO I+D</th>
+                                <th>PRODUCCIÓN<br><small>(Miles U)</small></th>
+                                <th>PRECIO<br><small>(Bs.)</small></th>
+                                <th>PUBLICIDAD<br><small>(Miles Bs.)</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for marca in data.marcas %}
+                            <tr>
+                                <td><span class="marca-badge">{{ marca.nombre }}</span></td>
+                                <td><input type="text" name="proyecto_id_{{ marca.nombre }}"
+                                           {% if data.industria.anio_actual == 0 %}disabled{% endif %}></td>
+                                <td><input type="number" name="produccion_{{ marca.nombre }}"
+                                           min="0" step="10" value="{{ marca.produccion_actual }}"
+                                           {% if data.industria.anio_actual == 0 %}disabled{% endif %} required></td>
+                                <td><input type="number" name="precio_{{ marca.nombre }}"
+                                           min="0" step="1" value="{{ marca.precio_actual }}" required></td>
+                                <td><input type="number" name="publicidad_{{ marca.nombre }}"
+                                           min="0" step="50" value="{{ marca.publicidad_actual }}"
+                                           {% if data.industria.anio_actual == 0 %}disabled{% endif %} required></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- FUERZA DE VENTAS -->
+                {% if data.industria.anio_actual > 0 %}
+                <section class="seccion-reportes" style="margin-top: 25px;">
+                    <h2 class="seccion-titulo"><span>👥</span> Fuerza de Ventas (Vendedores por Canal)</h2>
+                    <p style="font-size:14px; color:#888; margin-bottom:15px;">
+                        Asigna la cantidad de vendedores para cada canal de distribución.
+                    </p>
+
+                    <table class="tabla-decisiones">
+                        <thead>
+                            <tr>
+                                <th>MARCA</th>
+                                {% for canal in canales %}
+                                <th>{{ canal.nombre }}<br><small>({{ "{:,}".format(canal.total_distribuidores) }} distribuidores)</small></th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for marca in data.marcas %}
+                            <tr>
+                                <td><span class="marca-badge">{{ marca.nombre }}</span></td>
+                                {% for canal in canales %}
+                                <td>
+                                    <input type="number" name="vendedores_{{ canal.id }}_{{ marca.nombre }}"
+                                           min="0" step="1" 
+                                           value="{{ marca.vendedores.get(canal.id, 20) }}" required>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- OBJETIVOS PERCEPTUALES -->
+                <section class="seccion-reportes" style="margin-top: 25px;">
+                    <h2 class="seccion-titulo"><span>🎯</span> Objetivos Perceptuales</h2>
+                    <p style="font-size:14px; color:#888; margin-bottom:15px;">
+                        Coordenadas del mapa perceptual (rango -20 a +20). Opcional.
+                    </p>
+
+                    <table class="tabla-decisiones">
+                        <thead>
+                            <tr>
+                                <th>MARCA</th>
+                                <th>EJE X<br><small>(Economía Percibida)</small></th>
+                                <th>EJE Y<br><small>(Potencia Percibida)</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for marca in data.marcas %}
+                            <tr>
+                                <td><span class="marca-badge">{{ marca.nombre }}</span></td>
+                                <td><input type="number" name="objetivo_x_{{ marca.nombre }}"
+                                           min="-20" max="20" step="0.5" value="0"></td>
+                                <td><input type="number" name="objetivo_y_{{ marca.nombre }}"
+                                           min="-20" max="20" step="0.5" value="0"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+                {% endif %}
+
+                <!-- ESTUDIOS DE MERCADO -->
+                <section class="seccion-reportes" style="margin-top: 25px;">
+                    <h2 class="seccion-titulo"><span>🔍</span> Estudios de Mercado</h2>
+                    <p style="font-size:14px; color:#888; margin-bottom:15px;">
+                        Selecciona los estudios que deseas comprar.
+                    </p>
+
+                    <div class="estudios-grid">
+                        {% for estudio in estudios_disponibles %}
+                        <label class="estudio-item">
+                            <input type="checkbox" name="estudios" value="{{ estudio.id }}"
+                                   {% if estudio.id in estudios_comprados %}checked{% endif %}>
+                            <div class="estudio-info">
+                                <div class="estudio-numero">Estudio {{ estudio.numero }}</div>
+                                <div class="estudio-nombre">{{ estudio.nombre }}</div>
+                                <div class="estudio-desc">{{ estudio.descripcion }}</div>
+                                <div class="estudio-costo">
+                                    💰 Bs. {{ "{:,.0f}".format(estudio.costo_base) }}
+                                    <span class="estudio-tipo">{{ estudio.tipo_producto }}</span>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px; padding-top:20px; border-top:2px solid #f0edf3;">
+                    <a href="{{ url_for('alumno.panel') }}" class="btn-secundario">CANCELAR</a>
+                    <button type="submit" class="btn-primario btn-enviar">✓ ENVIAR DECISIÓN</button>
+                </div>
+
+            </form>
+
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/toast_alumno.js') }}"></script>
+</body>
+</html>

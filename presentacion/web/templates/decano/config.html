@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Configuración</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/decano.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="decano-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Decano</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('decano.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre" onclick="toggleSubmenu('sub-profesores')">
+                    <span class="sidebar-icon">🎓</span><span class="sidebar-label">Profesores</span><span class="sidebar-arrow">▾</span>
+                </div>
+                <div class="sidebar-submenu" id="sub-profesores">
+                    <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem">👥 Ver todos</a>
+                    <a href="{{ url_for('decano.agregar_profesor') }}" class="sidebar-subitem">➕ Agregar</a>
+                    <a href="{{ url_for('decano.editar_profesor_selector') }}" class="sidebar-subitem">✏️ Editar</a>
+                </div>
+                <a href="{{ url_for('decano.permisos') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Permisos Asignados</span></a>
+                <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item"><span class="sidebar-icon">📊</span><span class="sidebar-label">Simulaciones</span></a>
+                <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔑</span><span class="sidebar-label">Administrar Contraseña</span></a>
+                <a href="{{ url_for('decano.config') }}" class="sidebar-item activo"><span class="sidebar-icon">⚙️</span><span class="sidebar-label">Configuración</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+            <div class="page-header">
+                <h1 class="page-title">Configuración Global</h1>
+                <p class="page-subtitle">Parámetros generales del sistema</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('decano.guardar_config') }}" method="POST" class="form-profesor">
+
+                <div class="campo campo-full">
+                    <label>Nombre del Sistema</label>
+                    <input type="text" name="nombre_sistema" 
+                           value="{{ config.nombre_sistema }}" 
+                           placeholder="">
+                    <small class="hint">Se muestra en el header y en el login</small>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="campo">
+                        <label>Idioma</label>
+                        <select name="idioma">
+                            <option value="es" {% if config.idioma == 'es' %}selected{% endif %}>🇧🇴 Español</option>
+                            <option value="en" {% if config.idioma == 'en' %}selected{% endif %}>🇺🇸 English</option>
+                            <option value="qu" {% if config.idioma == 'qu' %}selected{% endif %}>🏔️ Quechua</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>Tema Visual</label>
+                        <select name="tema">
+                            <option value="andino" {% if config.tema == 'andino' %}selected{% endif %}>🎨 Andino</option>
+                            <option value="claro" {% if config.tema == 'claro' %}selected{% endif %}>☀️ Claro</option>
+                            <option value="oscuro" {% if config.tema == 'oscuro' %}selected{% endif %}>🌙 Oscuro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="campo">
+                        <label>Año Máximo por Defecto</label>
+                        <input type="number" name="anio_maximo_default" 
+                               value="{{ config.anio_maximo_default }}" 
+                               min="1" max="50">
+                    </div>
+                    <div class="campo">
+                        <label>Inflación por Defecto (%)</label>
+                        <input type="number" name="inflacion_default" 
+                               value="{{ config.inflacion_default }}" 
+                               step="0.1" min="0" max="100">
+                    </div>
+                </div>
+
+                <!-- PARÁMETROS ECONÓMICOS BOLIVIA -->
+                <div style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #f0edf3;">
+                    <h3 style="font-family:'Dancing Script'; color:#C9B6E4; font-size:24px; margin-bottom:20px;">
+                        🇧🇴 Parámetros Económicos Bolivia
+                    </h3>
+
+                    <div class="form-row-2">
+                        <div class="campo">
+                            <label>Inflación Anual (%)</label>
+                            <input type="number" name="bolivia_inflacion_anual" 
+                                   value="{{ config.bolivia_inflacion_anual }}" 
+                                   step="0.01" min="0" max="100">
+                            <small class="hint">INE Bolivia — 12 meses</small>
+                        </div>
+                        <div class="campo">
+                            <label>Inflación Acumulada (%)</label>
+                            <input type="number" name="bolivia_inflacion_acumulada" 
+                                   value="{{ config.bolivia_inflacion_acumulada }}" 
+                                   step="0.01" min="0" max="100">
+                            <small class="hint">Acumulada del año</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="campo">
+                            <label>Tipo de Cambio (Bs/USD)</label>
+                            <input type="number" name="bolivia_tipo_cambio_usd" 
+                                   value="{{ config.bolivia_tipo_cambio_usd }}" 
+                                   step="0.01" min="0">
+                            <small class="hint">BCB — Dólar oficial</small>
+                        </div>
+                        <div class="campo">
+                            <label>Crecimiento PIB (%)</label>
+                            <input type="number" name="bolivia_crecimiento_pib" 
+                                   value="{{ config.bolivia_crecimiento_pib }}" 
+                                   step="0.01" min="-100" max="100">
+                            <small class="hint">CEPAL — Proyección anual</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="campo">
+                            <label>Tasa de Desempleo (%)</label>
+                            <input type="number" name="bolivia_tasa_desempleo" 
+                                   value="{{ config.bolivia_tasa_desempleo }}" 
+                                   step="0.01" min="0" max="100">
+                            <small class="hint">Estimación oficial</small>
+                        </div>
+                        <div class="campo">
+                            <label>Fecha de Actualización</label>
+                            <input type="date" name="bolivia_fecha_actualizacion" 
+                                   value="{{ config.bolivia_fecha_actualizacion }}">
+                            <small class="hint">Última actualización</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acciones-form" style="margin-top:30px;">
+                    <button type="submit" class="btn-primario">💾 GUARDAR CAMBIOS</button>
+                    <a href="{{ url_for('decano.panel') }}" class="btn-secundario">CANCELAR</a>
+                </div>
+            </form>
+
+            <section class="card" style="margin-top: 30px;">
+                <div class="info-sistema">
+                    <h3>📊 Información del Sistema</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Versión</span>
+                            <span class="info-valor">v1.0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Base de datos</span>
+                            <span class="info-valor">PostgreSQL</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Framework</span>
+                            <span class="info-valor">Flask 3.1</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Año</span>
+                            <span class="info-valor">2026</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+
+</body>
+</html>

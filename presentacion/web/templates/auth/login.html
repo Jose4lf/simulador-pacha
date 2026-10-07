@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PACHA - Login</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/login.css') }}"
+    />
+  </head>
+  <body class="login-body">
+    <!-- ============ FONDO DECORATIVO ============ -->
+    <div class="fondo-decorativo">
+      <!-- Capa 1: Sol andino -->
+      <div class="sol-andino"></div>
+
+      <!-- Capa 2: Montañas lejanas -->
+      <div class="montanas montanas-atras">
+        <svg viewBox="0 0 1440 400" preserveAspectRatio="none">
+          <path
+            d="M0,400 L0,250 L120,180 L240,230 L360,150 L480,200 L600,120 L720,180 L840,140 L960,200 L1080,160 L1200,220 L1320,170 L1440,250 L1440,400 Z"
+            fill="#514653"
+            opacity="0.3"
+          />
+        </svg>
+      </div>
+
+      <!-- Capa 3: Montañas cercanas -->
+      <div class="montanas montanas-frente">
+        <svg viewBox="0 0 1440 300" preserveAspectRatio="none">
+          <path
+            d="M0,300 L0,200 L180,120 L360,180 L540,80 L720,160 L900,100 L1080,180 L1260,120 L1440,200 L1440,300 Z"
+            fill="#514653"
+            opacity="0.5"
+          />
+        </svg>
+      </div>
+
+      <!-- Capa 4: Nubes que se mueven -->
+      <div class="nube nube-1"></div>
+      <div class="nube nube-2"></div>
+      <div class="nube nube-3"></div>
+
+      <!-- Capa 5: Iconos decorativos flotantes -->
+      <div class="decoracion icono-1">☀️</div>
+      <div class="decoracion icono-2">🌿</div>
+      <div class="decoracion icono-3">🏔️</div>
+      <div class="decoracion icono-4">🌾</div>
+      <div class="decoracion icono-5">⛰️</div>
+      <div class="decoracion icono-6">🌵</div>
+
+      <!-- Capa 6: Patrón de tejido andino sutil -->
+      <div class="patron-tejido"></div>
+    </div>
+
+    <!-- ============ CONTENIDO PRINCIPAL ============ -->
+    <div class="login-contenedor">
+      <div class="pacha-logo">
+        <div class="pacha-icono">⛰️</div>
+        <h1 class="pacha-nombre">PACHA</h1>
+        <p class="pacha-tagline">Simuladores de Negocios Bolivianos</p>
+      </div>
+
+      <div class="login-card">
+        <div class="login-tabs">
+          <button
+            type="button"
+            class="login-tab {% if rol_activo == 'alumno' %}activo{% endif %}"
+            onclick="cambiarRol('alumno', this)"
+          >
+            Alumno
+          </button>
+          <button
+            type="button"
+            class="login-tab {% if rol_activo == 'profesor' %}activo{% endif %}"
+            onclick="cambiarRol('profesor', this)"
+          >
+            Profesor
+          </button>
+          <button
+            type="button"
+            class="login-tab {% if rol_activo == 'decano' %}activo{% endif %}"
+            onclick="cambiarRol('decano', this)"
+          >
+            Decano
+          </button>
+        </div>
+
+        <div class="login-cuerpo">
+          <h2 id="titulo-login" class="login-titulo">
+            {% if rol_activo == 'profesor' %}Acceso Profesor {% elif rol_activo
+            == 'decano' %}Acceso Decano {% else %}Acceso Alumno{% endif %}
+          </h2>
+          <p class="login-subtitulo">Ingresa tus credenciales</p>
+
+          {% if error %}
+          <div class="login-error">⚠️ {{ error }}</div>
+          {% endif %}
+
+          <form
+            action="{{ url_for('auth.login') }}"
+            method="POST"
+            class="login-form"
+          >
+            <input
+              type="hidden"
+              name="rol"
+              id="input-rol"
+              value="{{ rol_activo or 'alumno' }}"
+            />
+
+            <div class="campo-grupo">
+              <label>Usuario</label>
+              <input
+                type="text"
+                name="usuario"
+                placeholder="Ingresa tu usuario"
+                value="{{ request.form.get('usuario', '') }}"
+                required
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="campo-grupo">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn-login">INGRESAR</button>
+          </form>
+        </div>
+
+        <div class="login-footer">
+          <span>© PACHA 2026 - Bolivia 🇧🇴</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    function cambiarRol(rol, boton) {
+        // 1. Cambiar la pestaña activa
+        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('activo'));
+        boton.classList.add('activo');
+
+        // 2. Actualizar el campo oculto
+        document.getElementById('input-rol').value = rol;
+
+        // 3. Cambiar el título
+        const titulos = {
+            'alumno': 'Acceso Alumno',
+            'profesor': 'Acceso Profesor',
+            'decano': 'Acceso Decano'
+        };
+        document.getElementById('titulo-login').textContent = titulos[rol];
+
+        // 4. Ocultar alerta de error si existe
+        const alerta = document.querySelector('.login-error');
+        if (alerta) {
+            alerta.style.transition = 'opacity 0.3s ease';
+            alerta.style.opacity = '0';
+            setTimeout(() => alerta.style.display = 'none', 300);
+        }
+    }
+</script>
+  </body>
+</html>

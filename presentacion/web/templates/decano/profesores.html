@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Profesores</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/decano.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="decano-body">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma">
+                <span>🇧🇴</span>
+                <span>Español</span>
+                <span class="flecha">▾</span>
+            </div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Decano</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Colapsar/Expandir menú">
+    ☰
+</button>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('decano.panel') }}" class="sidebar-item">
+                    <span class="sidebar-icon">🏠</span>
+                    <span class="sidebar-label">Inicio</span>
+                </a>
+
+                <div class="sidebar-item sidebar-item-padre activo abierto" onclick="toggleSubmenu('sub-profesores')">
+                    <span class="sidebar-icon">🎓</span>
+                    <span class="sidebar-label">Profesores</span>
+                    <span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto" id="sub-profesores">
+                    <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem activo">👥 Ver todos</a>
+                    <a href="{{ url_for('decano.agregar_profesor') }}" class="sidebar-subitem">➕ Agregar</a>
+                    <a href="{{ url_for('decano.editar_profesor_selector') }}" class="sidebar-subitem">✏️ Editar</a>
+                </div>
+
+                <a href="{{ url_for('decano.permisos') }}" class="sidebar-item">
+                    <span class="sidebar-icon">🔐</span>
+                    <span class="sidebar-label">Permisos Asignados</span>
+                </a>
+                <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simulaciones</span>
+                </a>
+                <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item">
+                    <span class="sidebar-icon">🔑</span>
+                    <span class="sidebar-label">Administrar Contraseña</span>
+                </a>
+                <a href="{{ url_for('decano.config') }}" class="sidebar-item">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span class="sidebar-label">Configuración</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>© PACHA 2026</p>
+                <p>v1.0</p>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO -->
+        <main class="main-contenido">
+
+            <div class="page-header">
+                <h1 class="page-title">Gestión de Profesores</h1>
+                <p class="page-subtitle">{{ profesores|length }} profesor(es) registrado(s)</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Botón agregar -->
+            <div class="acciones-header">
+                <a href="{{ url_for('decano.agregar_profesor') }}" class="btn-primario">
+                    ➕ AGREGAR PROFESOR
+                </a>
+            </div>
+
+            <!-- Tabla -->
+            <section class="card">
+                {% if profesores %}
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>USUARIO</th>
+                            <th>NOMBRE</th>
+                            <th>EMAIL</th>
+                            <th>STATUS</th>
+                            <th>SIMULADORES</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in profesores %}
+                        <tr>
+                            <td><code>{{ p.username }}</code></td>
+                            <td>{{ p.nombre }}</td>
+                            <td>{{ p.email }}</td>
+                            <td>
+                                {% if p.bloqueado %}
+                                <span class="badge badge-error">🔒 Bloqueado</span>
+                                {% elif p.activo %}
+                                <span class="badge badge-ok">✅ Activo</span>
+                                {% else %}
+                                <span class="badge badge-warning">⏸ Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% for sim in p.simuladores %}
+                                <span class="badge-sim 
+                                    {% if sim.estado == 'en_desarrollo' %}badge-sim-on{% else %}badge-sim-off{% endif %}">
+                                    {{ sim.nombre }}
+                                </span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('decano.editar_profesor_form', usuario_id=p.id) }}" 
+                                   class="btn-icono btn-editar" title="Editar">
+                                    ✏️
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="vacio">
+                    <div class="vacio-icono">🎓</div>
+                    <h3 class="vacio-titulo">No hay profesores registrados</h3>
+                    <p class="vacio-texto">Crea el primer profesor para empezar a asignar simuladores.</p>
+                    <a href="{{ url_for('decano.agregar_profesor') }}" class="btn-primario">
+                        ➕ AGREGAR PROFESOR
+                    </a>
+                </div>
+                {% endif %}
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const padre = submenu.previousElementSibling;
+            const arrow = padre.querySelector('.sidebar-arrow');
+            if (submenu.classList.contains('abierto')) {
+                submenu.classList.remove('abierto');
+                padre.classList.remove('abierto');
+                if (arrow) arrow.textContent = '▾';
+            } else {
+                submenu.classList.add('abierto');
+                padre.classList.add('abierto');
+                if (arrow) arrow.textContent = '▴';
+            }
+        }
+        function toggleSidebar() {
+    document.body.classList.toggle('sidebar-colapsado');
+    // Guardar preferencia
+    localStorage.setItem('sidebar-colapsado', 
+        document.body.classList.contains('sidebar-colapsado'));
+}
+
+// Restaurar estado al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('sidebar-colapsado') === 'true') {
+        document.body.classList.add('sidebar-colapsado');
+    }
+});
+    </script>
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+</body>
+</html>

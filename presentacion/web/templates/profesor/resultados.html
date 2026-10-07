@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PACHA - Resultados</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/profesor.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="profesor-body">
+    <header class="header">
+      <div class="header-izq">
+        <span class="logo-icono">⛰️</span>
+        <span class="logo-texto">PACHA</span>
+      </div>
+      <div class="header-der">
+        <div class="header-idioma">
+          <span>🇧🇴</span><span>Español</span><span class="flecha">▾</span>
+        </div>
+        <div class="header-usuario">
+          <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+          <div class="datos">
+            <div class="nombre">{{ nombre }}</div>
+            <div class="rol">Profesor</div>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+      </div>
+    </header>
+
+    <div class="contenedor">
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"
+            ><span class="sidebar-icon">🏠</span
+            ><span class="sidebar-label">Inicio</span></a
+          >
+          <div
+            class="sidebar-item sidebar-item-padre activo abierto"
+            onclick="toggleSubmenu('sub-simuladores')"
+          >
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Simuladores</span>
+            <span class="sidebar-arrow">▴</span>
+          </div>
+          <div class="sidebar-submenu abierto" id="sub-simuladores">
+            <a
+              href="{{ url_for('profesor.simuladores') }}"
+              class="sidebar-subitem"
+              >📋 Lista completa</a
+            >
+            <a
+              href="{{ url_for('profesor.simulaciones') }}"
+              class="sidebar-subitem activo"
+              >▶️ Mis simulaciones</a
+            >
+            <a
+              href="{{ url_for('profesor.nueva_simulacion') }}"
+              class="sidebar-subitem"
+              >➕ Nueva simulación</a
+            >
+          </div>
+          <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"
+            ><span class="sidebar-icon">🔐</span
+            ><span class="sidebar-label">Administrar Contraseña</span></a
+          >
+        </nav>
+        <div class="sidebar-footer">
+          <p>© PACHA 2026</p>
+          <p>v1.0</p>
+        </div>
+      </aside>
+
+      <main class="main-contenido">
+        <div class="page-header">
+          <h1 class="page-title">Resultados Generales</h1>
+          <p class="page-subtitle">
+            {{ data.industria_nombre }} — Año {{ data.anio }}
+          </p>
+        </div>
+
+        {% if data.equipos and data.equipos[0].datos %} {% for eq in
+        data.equipos %} {% if eq.datos %}
+        <section class="card" style="margin-bottom: 20px">
+          <div class="sim-card-etiqueta" style="margin-bottom: 15px">
+            🏢 EQUIPO {{ eq.numero }} — {{ eq.nombre_empresa }}
+          </div>
+
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>MÉTRICA</th>
+                {% for marca in eq.datos.produccion.keys() %}
+                <th>{{ marca }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Producción</td>
+                {% for marca, valor in eq.datos.produccion.items() %}
+                <td>{{ "{:,.0f}".format(valor) }}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <td>Precio (Bs.)</td>
+                {% for marca, valor in eq.datos.precio.items() %}
+                <td>Bs. {{ "%.2f"|format(valor) }}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <td>Publicidad (Bs.)</td>
+                {% for marca, valor in eq.datos.publicidad.items() %}
+                <td>Bs. {{ "{:,.0f}".format(valor) }}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <td>I + D (Bs.)</td>
+                {% for marca, valor in eq.datos.investigacion.items() %}
+                <td>Bs. {{ "{:,.0f}".format(valor) }}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <td><strong>Ventas</strong></td>
+                {% for marca, valor in eq.datos.ventas.items() %}
+                <td><strong>{{ "{:,.0f}".format(valor) }}</strong></td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <td>Cuota de Mercado</td>
+                {% for marca, valor in eq.datos.cuota.items() %}
+                <td>{{ "%.2f"|format(valor) }}%</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <td><strong>Beneficio</strong></td>
+                {% for marca, valor in eq.datos.beneficio.items() %}
+                <td><strong>Bs. {{ "{:,.0f}".format(valor) }}</strong></td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+        </section>
+        {% endif %} {% endfor %} {% else %}
+        <section class="card">
+          <div class="vacio">
+            <div class="vacio-icono">📊</div>
+            <h3 class="vacio-titulo">Aún no hay resultados</h3>
+            <p class="vacio-texto">
+              Procesa una ronda desde el Panel de Control para ver los
+              resultados.
+            </p>
+          </div>
+        </section>
+        {% endif %}
+
+        <div style="margin-top: 20px">
+          <a
+            href="{{ url_for('profesor.exportar_resultados_csv', industria_id=data.industria_id) }}"
+            class="btn-primario"
+            style="background: #c9b6e4; margin-right: 12px"
+          >
+            📥 EXPORTAR CSV
+          </a>
+          <a
+            href="{{ url_for('profesor.detalle_simulacion', industria_id=data.industria_id) }}"
+            class="btn-secundario"
+            >← Volver al Panel</a
+          >
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        const padre = submenu.previousElementSibling;
+        const arrow = padre.querySelector(".sidebar-arrow");
+        if (submenu.classList.contains("abierto")) {
+          submenu.classList.remove("abierto");
+          padre.classList.remove("abierto");
+          if (arrow) arrow.textContent = "▾";
+        } else {
+          submenu.classList.add("abierto");
+          padre.classList.add("abierto");
+          if (arrow) arrow.textContent = "▴";
+        }
+      }
+    </script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+  </body>
+</html>
