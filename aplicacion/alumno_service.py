@@ -110,29 +110,48 @@ class AlumnoService:
 
             marcas = []
             for rm in rep.marcas:
+                # 1. Buscar los datos de los canales para esta marca
+                canales_data = {}
+                fv_c1, fv_c2, fv_c3 = 0, 0, 0
+                
+                # Consultamos la tabla ReporteMarcaCanal
+                for rm_canal in rm.canales:
+                    canales_data[rm_canal.canal_id] = float(rm_canal.detallistas or 0)
+                    if rm_canal.canal_id == 1: fv_c1 = float(rm_canal.vendedores or 0)
+                    if rm_canal.canal_id == 2: fv_c2 = float(rm_canal.vendedores or 0)
+                    if rm_canal.canal_id == 3: fv_c3 = float(rm_canal.vendedores or 0)
+
                 marcas.append({
                     "marca": rm.marca_nombre,
                     "produccion": float(rm.produccion or 0),
                     "unidades_vendidas": float(rm.unidades_vendidas or 0),
                     "inventario": float(rm.inventario or 0),
                     "precio_final": float(rm.precio_final or 0),
-                    "publicidad": float(rm.publicidad or 0),
-                    "contribucion_bruta_marketing": float(rm.contribucion_bruta_marketing or 0),
-                    "porcion_mercado": float(rm.porcion_mercado or 0),
+                    "precio_promedio": float(rm.precio_promedio or 0),
+                    "costo_transferencia": float(rm.costo_transferencia or 0),
                     "ingresos": float(rm.ingresos or 0),
                     "costo_productos_vendidos": float(rm.costo_productos_vendidos or 0),
                     "costo_inventario": float(rm.costo_inventario or 0),
+                    "publicidad": float(rm.publicidad or 0),
+                    "contribucion_bruta_marketing": float(rm.contribucion_bruta_marketing or 0),
+                    "porcion_mercado": float(rm.porcion_mercado or 0),
+                    
+                    # 👇 AGREGAMOS LOS DATOS DE LOS CANALES 👇
+                    "detallistas": canales_data, 
+                    "fv_canal_1": fv_c1,
+                    "fv_canal_2": fv_c2,
+                    "fv_canal_3": fv_c3,
                 })
-
             return {
                 "anio": int(rep.anio),
                 "mercado_total": float(rep.mercado_total or 0),
                 "contribucion_bruta_total": float(rep.contribucion_bruta_total or 0),
                 "contribucion_neta_total": float(rep.contribucion_neta_total or 0),
                 "presupuesto_proximo_periodo": float(rep.presupuesto_proximo_periodo or 0),
-                "investigacion_total": 0.0,
-                "fuerza_ventas_total": 0.0,
-                "investigacion_mercado": 0.0,
+                "investigacion_total": float(rep.investigacion_total or 0),
+                "fuerza_ventas_total": float(rep.fuerza_ventas_total or 0),
+                "investigacion_mercado": float(rep.investigacion_mercado or 0),
+                "costo_util_excepcional": float(rep.costo_util_excepcional or 0),
                 "marcas": marcas,
             }
         finally:

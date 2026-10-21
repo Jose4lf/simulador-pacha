@@ -5,8 +5,9 @@ from datetime import datetime
 from infraestructura.database import get_session
 from core.models import (
     Usuario, Simulador, Industria, Equipo, Marca,
-    Segmento, Canal, Decision, Reporte, DecisionMarca,
-    EstudioMercado, DecisionEstudio,
+    Segmento, Canal, Decision, Reporte, ReporteMarca, 
+    DecisionMarca, EstudioMercado, DecisionEstudio,
+    ReporteMarcaCanal, FuerzaVentas  # 👈 AGREGA ESTOS DOS
 )
 from core.generador_nombres import generar_nombres_todos_equipos, vocal_equipo
 
@@ -199,7 +200,6 @@ class ProfesorService:
                 num_equipos, tipo="SONITE", marcas_por_equipo=2
             )
 
-                        # 5. Crear equipos con sus marcas y reporte del Año 0
             for num_equipo in range(1, num_equipos + 1):
                 equipo = Equipo(
                     industria_id=ind.id,
@@ -217,16 +217,38 @@ class ProfesorService:
                 nombres = nombres_por_equipo.get(num_equipo, [])
                 marcas_creadas = []
                 for idx, nombre_marca in enumerate(nombres):
+                    # Valores por defecto iniciales
+                    precio_ini = 300
+                    pub_ini = 2500
+                    prod_ini = 100
+
+                    # Ajustar valores iniciales de la Marca según la firma
+                    if num_equipo == 1:
+                        if idx == 0: precio_ini, pub_ini, prod_ini = 278, 1650, 10599
+                        elif idx == 1: precio_ini, pub_ini, prod_ini = 420, 2100, 8800
+                    elif num_equipo == 2:
+                        if idx == 0: precio_ini, pub_ini, prod_ini = 300, 3000, 5000
+                        elif idx == 1: precio_ini, pub_ini, prod_ini = 320, 2500, 4000
+                    elif num_equipo == 3:
+                        if idx == 0: precio_ini, pub_ini, prod_ini = 300, 5000, 12000
+                        elif idx == 1: precio_ini, pub_ini, prod_ini = 310, 4000, 8000
+                    elif num_equipo == 4:
+                        if idx == 0: precio_ini, pub_ini, prod_ini = 300, 6000, 15000
+                        elif idx == 1: precio_ini, pub_ini, prod_ini = 320, 4500, 10000
+                    elif num_equipo == 5:
+                        if idx == 0: precio_ini, pub_ini, prod_ini = 300, 5500, 13000
+                        elif idx == 1: precio_ini, pub_ini, prod_ini = 310, 4200, 9000
+
                     marca = Marca(
                         equipo_id=equipo.id,
                         nombre=nombre_marca,
                         tipo="SONITE",
                         activa=True,
                         anio_lanzamiento=0,
-                        precio_actual=300,
-                        publicidad_actual=2500,
+                        precio_actual=precio_ini,
+                        publicidad_actual=pub_ini,
                         investigacion_actual=0,
-                        produccion_actual=100,
+                        produccion_actual=prod_ini,
                         calidad_actual=50,
                     )
                     session.add(marca)
@@ -235,17 +257,54 @@ class ProfesorService:
                     marcas_creadas.append(marca)
 
                 # ============================================================
-                # CREAR REPORTE INICIAL DEL AÑO 0
+                # CREAR REPORTE INICIAL DEL AÑO 0 (Datos exactos por equipo)
                 # ============================================================
                 from core.models import Reporte, ReporteMarca
+
+                # Asignar totales según el número de equipo (Perfiles variados)
+                neta_total = 0.0
+                bruta_total = 0.0
+                presupuesto = 7000.0
+                id_total = 0.0
+                fv_total = 0.0
+                inv_mercado = 0.0
+                costo_exc = 0.0
+
+                if num_equipo == 1:
+                    # PERFIL: Regular (Gasto alto en vendedores)
+                    neta_total, bruta_total, presupuesto = 4700.0, 6166.0, 7000.0
+                    fv_total = -1466.0
+                elif num_equipo == 2:
+                    # PERFIL: Mala (Bruta baja, pero FV POSITIVA por bono/extra)
+                    neta_total, bruta_total, presupuesto = 7308.0, 7000.0, 8000.0
+                    fv_total = 308.0  # 7000 + 308 = 7308
+                elif num_equipo == 3:
+                    # PERFIL: Muy Buena (Muy eficientes, poco gasto en FV)
+                    neta_total, bruta_total, presupuesto = 15950.0, 16500.0, 9500.0
+                    fv_total = -550.0  # 16500 - 550 = 15950
+                elif num_equipo == 4:
+                    # PERFIL: Excelente (Ventas altísimas, invierten mucho pero ganan más)
+                    neta_total, bruta_total, presupuesto = 22719.0, 26000.0, 11000.0
+                    fv_total = -3281.0  # 26000 - 3281 = 22719
+                elif num_equipo == 5:
+                    # PERFIL: Buena (Equilibrada)
+                    neta_total, bruta_total, presupuesto = 19323.0, 20000.0, 10000.0
+                    fv_total = -677.0  # 20000 - 677 = 19323
 
                 rep_inicial = Reporte(
                     equipo_id=equipo.id,
                     anio=0,
                     mercado_total=1300000,
-                    contribucion_bruta_total=0,
-                    contribucion_neta_total=0,
-                    presupuesto_proximo_periodo=10000,
+                    contribucion_bruta_total=bruta_total,
+                    contribucion_neta_total=neta_total,
+                    presupuesto_proximo_periodo=presupuesto,
+                    
+                    # GUARDAMOS LOS NUEVOS CAMPOS CALCULADOS
+                    investigacion_total=id_total,
+                    fuerza_ventas_total=fv_total,
+                    investigacion_mercado=inv_mercado,
+                    costo_util_excepcional=costo_exc,
+                    
                     inflacion_aplicada=ind.inflacion_anual,
                     crecimiento_pnb=ind.crecimiento_pib,
                     tipo_cambio=ind.tipo_cambio_usd,
@@ -254,33 +313,152 @@ class ProfesorService:
                 session.commit()
                 session.refresh(rep_inicial)
 
-                # Crear reporte_marca inicial (con valores del escenario)
-                for marca in marcas_creadas:
+                # Crear reporte_marca inicial con datos financieros exactos
+                for idx, marca in enumerate(marcas_creadas):
+                    prod, vendidas, inv = 100, 100, 0
+                    precio, precio_prom, costo_trans = 300, 300, 165
+                    ingresos, costo_prod, costo_inv = 30000, 16500, 0
+                    publicidad, contribucion = 2500, 11000
+
+                    if num_equipo == 1:
+                        if idx == 0:
+                            prod, vendidas, inv = 10599.0, 10599.0, 0.0
+                            precio, precio_prom, costo_trans = 278.0, 171.0, 108.0
+                            ingresos, costo_prod, costo_inv = 18099.0, 11397.0, 0.0
+                            publicidad, contribucion = 1650.0, 5052.0
+                        elif idx == 1:
+                            prod, vendidas, inv = 8800.0, 3439.8, 5360.2
+                            precio, precio_prom, costo_trans = 420.0, 259.0, 140.0
+                            ingresos, costo_prod, costo_inv = 8908.0, 4829.0, 865.0
+                            publicidad, contribucion = 2100.0, 1113.0
+                    elif num_equipo == 2:
+                        if idx == 0:
+                            prod, vendidas, inv = 5000.0, 4500.0, 500.0
+                            precio, precio_prom, costo_trans = 300.0, 280.0, 150.0
+                            ingresos, costo_prod, costo_inv = 1260000.0, 675000.0, 75000.0
+                            publicidad, contribucion = 30000.0, 480000.0
+                        elif idx == 1:
+                            prod, vendidas, inv = 4000.0, 3800.0, 200.0
+                            precio, precio_prom, costo_trans = 320.0, 300.0, 160.0
+                            ingresos, costo_prod, costo_inv = 1140000.0, 608000.0, 32000.0
+                            publicidad, contribucion = 25000.0, 455000.0
+                    elif num_equipo == 3:
+                        if idx == 0:
+                            prod, vendidas, inv = 12000.0, 11000.0, 1000.0
+                            precio, precio_prom, costo_trans = 300.0, 290.0, 150.0
+                            ingresos, costo_prod, costo_inv = 3190000.0, 1650000.0, 150000.0
+                            publicidad, contribucion = 50000.0, 1340000.0
+                        elif idx == 1:
+                            prod, vendidas, inv = 8000.0, 7500.0, 500.0
+                            precio, precio_prom, costo_trans = 310.0, 295.0, 155.0
+                            ingresos, costo_prod, costo_inv = 2212500.0, 1162500.0, 77500.0
+                            publicidad, contribucion = 40000.0, 932500.0
+                    elif num_equipo == 4:
+                        if idx == 0:
+                            prod, vendidas, inv = 15000.0, 14500.0, 500.0
+                            precio, precio_prom, costo_trans = 300.0, 295.0, 150.0
+                            ingresos, costo_prod, costo_inv = 4277500.0, 2175000.0, 75000.0
+                            publicidad, contribucion = 60000.0, 1967500.0
+                        elif idx == 1:
+                            prod, vendidas, inv = 10000.0, 9800.0, 200.0
+                            precio, precio_prom, costo_trans = 320.0, 310.0, 160.0
+                            ingresos, costo_prod, costo_inv = 3038000.0, 1568000.0, 32000.0
+                            publicidad, contribucion = 45000.0, 1375000.0
+                    elif num_equipo == 5:
+                        if idx == 0:
+                            prod, vendidas, inv = 13000.0, 12500.0, 500.0
+                            precio, precio_prom, costo_trans = 300.0, 290.0, 150.0
+                            ingresos, costo_prod, costo_inv = 3625000.0, 1875000.0, 75000.0
+                            publicidad, contribucion = 55000.0, 1620000.0
+                        elif idx == 1:
+                            prod, vendidas, inv = 9000.0, 8500.0, 500.0
+                            precio, precio_prom, costo_trans = 310.0, 300.0, 155.0
+                            ingresos, costo_prod, costo_inv = 2550000.0, 1317500.0, 77500.0
+                            publicidad, contribucion = 42000.0, 1120000.0
+
                     rm = ReporteMarca(
                         reporte_id=rep_inicial.id,
                         marca_nombre=marca.nombre,
-                        produccion=100,
-                        unidades_vendidas=100,
-                        inventario=0,
-                        precio_final=300,
-                        precio_promedio=300,
-                        costo_transferencia=165,
-                        ingresos=30000,
-                        costo_productos_vendidos=16500,
-                        costo_inventario=0,
-                        publicidad=2500,
-                        contribucion_bruta_marketing=11000,
+                        produccion=prod,
+                        unidades_vendidas=vendidas,
+                        inventario=inv,
+                        precio_final=precio,
+                        precio_promedio=precio_prom,
+                        costo_transferencia=costo_trans,
+                        ingresos=ingresos,
+                        costo_productos_vendidos=costo_prod,
+                        costo_inventario=costo_inv,
+                        publicidad=publicidad,
+                        contribucion_bruta_marketing=contribucion,
                         porcion_mercado=100.0 / (num_equipos * 2),
                     )
                     session.add(rm)
                 session.commit()
-
             return {"ok": True, "industria_id": ind.id}
+
         except Exception as e:
             session.rollback()
             return {"error": str(e)}
         finally:
             session.close()
+                 # ============================================================
+                # CREAR DATOS DE MARKETING (Distribuidores y Fuerza de Ventas)
+                # ============================================================
+                # 1. Asignar Porción de Mercado según el equipo
+            if num_equipo == 1:
+                    porciones = [0.11, 0.04]
+                    fv_canales = [5, 42, 18]
+                    dist_canales = [504, 16115, 1440]
+            elif num_equipo == 2:
+                    porciones = [0.08, 0.06]
+                    fv_canales = [10, 20, 5]      # Mucho vendedor en Canal 1
+                    dist_canales = [400, 12000, 1000]
+            elif num_equipo == 3:
+                    porciones = [0.15, 0.10]
+                    fv_canales = [50, 100, 20]    # Fuerza de ventas agresiva
+                    dist_canales = [600, 20000, 2000]
+            elif num_equipo == 4:
+                    porciones = [0.20, 0.15]
+                    fv_canales = [10, 15, 2]      # Muy eficiente (pocos vendedores)
+                    dist_canales = [800, 25000, 3000]
+            elif num_equipo == 5:
+                    porciones = [0.05, 0.02]
+                    fv_canales = [2, 5, 1]        # Casi sin fuerza de ventas
+                    dist_canales = [200, 5000, 500]
+
+                # Actualizar ReporteMarca con la porción de mercado real
+            for idx_rm, rm in enumerate(rep_inicial.marcas):
+                    if idx_rm < len(porciones):
+                        rm.porcion_mercado = porciones[idx_rm] * 100 # Se guarda en porcentaje
+
+                # Obtener los canales de la industria (Canal 1, 2 y 3)
+            canales = session.query(Canal).filter_by(industria_id=ind.id).order_by(Canal.numero).all()
+
+                # Guardar Distribuidores (ReporteMarcaCanal) y Fuerza de Ventas
+            for idx_rm, rm in enumerate(rep_inicial.marcas):
+                    # Guardar distribuidores en el reporte
+                    for idx_canal, canal in enumerate(canales):
+                        if idx_canal < len(dist_canales):
+                            rm_canal = ReporteMarcaCanal(
+                                reporte_marca_id=rm.id,
+                                canal_id=canal.id,
+                                detallistas=dist_canales[idx_canal],
+                                vendedores=fv_canales[idx_canal],
+                                ventas_unidades=rm.unidades_vendidas / 3 # Dividido entre los 3 canales
+                            )
+                            session.add(rm_canal)
+
+                            # Guardar la fuerza de ventas para esta marca/canal
+                            fuerza = FuerzaVentas(
+                                marca_id=marca.id, # La marca actual
+                                canal_id=canal.id,
+                                vendedores=fv_canales[idx_canal],
+                                detallistas=dist_canales[idx_canal],
+                                anio=0
+                            )
+                            session.add(fuerza)
+
+            session.commit()
 
     @staticmethod
     def eliminar_industria(industria_id):

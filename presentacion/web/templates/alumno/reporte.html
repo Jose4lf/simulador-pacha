@@ -1,312 +1,531 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>PACHA - Reporte Año {{ anio }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/alumno.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/alumno.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body class="alumno-body">
-
+  </head>
+  <body class="alumno-body">
     <!-- HEADER -->
     <header class="header">
-        <div class="header-izq">
-            <span class="logo-icono">⛰️</span>
-            <span class="logo-texto">PACHA</span>
+      <div class="header-izq">
+        <span class="logo-icono">⛰️</span>
+        <span class="logo-texto">PACHA</span>
+      </div>
+      <div class="header-der">
+        <div class="header-idioma">
+          <span>🇧🇴</span><span>Español</span><span class="flecha">▾</span>
         </div>
-        <div class="header-der">
-            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
-            <div class="header-usuario">
-                <div class="avatar">{{ nombre[0] if nombre else 'A' }}</div>
-                <div class="datos">
-                    <div class="nombre">{{ nombre }}</div>
-                    <div class="rol">Alumno</div>
-                </div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        <div class="header-usuario">
+          <div class="avatar">{{ nombre[0] if nombre else 'A' }}</div>
+          <div class="datos">
+            <div class="nombre">{{ nombre }}</div>
+            <div class="rol">Alumno</div>
+          </div>
         </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+      </div>
     </header>
 
     <div class="contenedor">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('alumno.panel') }}" class="sidebar-item"
+            ><span class="sidebar-icon">🏠</span
+            ><span class="sidebar-label">Inicio</span></a
+          >
+          <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item"
+            ><span class="sidebar-icon">📝</span
+            ><span class="sidebar-label">Decisiones</span></a
+          >
+          <a href="{{ url_for('alumno.manual') }}" class="sidebar-item"
+            ><span class="sidebar-icon">📖</span
+            ><span class="sidebar-label">Manual</span></a
+          >
+        </nav>
+        <div class="sidebar-footer">
+          <p>© PACHA 2026</p>
+          <p>v1.0</p>
+        </div>
+      </aside>
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <nav class="sidebar-nav">
-                <a href="{{ url_for('alumno.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
-                <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item"><span class="sidebar-icon">📝</span><span class="sidebar-label">Decisiones</span></a>
-                <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item"><span class="sidebar-icon">📊</span><span class="sidebar-label">Estudios</span></a>
-                <a href="{{ url_for('alumno.manual') }}" class="sidebar-item"><span class="sidebar-icon">📖</span><span class="sidebar-label">Manual</span></a>
-            </nav>
-            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
-        </aside>
+      <!-- CONTENIDO -->
+      <main class="main-contenido">
+        <!-- TÍTULO -->
+        <h1 class="panel-titulo">Reporte para Alumno</h1>
+        <p class="panel-subtitulo">MARKESTRATED</p>
 
-        <!-- CONTENIDO -->
-        <main class="main-contenido">
+        <!-- ENCABEZADO DEL REPORTE -->
+        <section class="panel-estado">
+          <div class="tarjeta-info tarjeta-industria">
+            <div class="tarjeta-etiqueta">📈 INDUSTRIA</div>
+            <div class="tarjeta-valor">{{ data.industria.nombre }}</div>
+          </div>
 
-            <!-- TÍTULO -->
-            <h1 class="panel-titulo">Reporte para Alumno</h1>
-            <p class="panel-subtitulo">MARKESTRATED</p>
+          <div class="tarjeta-info tarjeta-equipo">
+            <div class="tarjeta-etiqueta">👥 EQUIPO/FIRMA</div>
+            <div class="tarjeta-valor">{{ data.equipo.numero }}</div>
+          </div>
 
-            <!-- ENCABEZADO DEL REPORTE -->
-            <section class="panel-estado">
+          <div class="tarjeta-info tarjeta-anio">
+            <div class="tarjeta-etiqueta">📅 RESULTADOS DEL AÑO</div>
+            <div class="tarjeta-valor">{{ anio }}</div>
+          </div>
 
-                <div class="tarjeta-info tarjeta-industria">
-                    <div class="tarjeta-etiqueta">📈 INDUSTRIA</div>
-                    <div class="tarjeta-valor">{{ data.industria.nombre }}</div>
-                </div>
+          <div class="tarjeta-acciones">
+            <a href="{{ url_for('alumno.panel') }}" class="btn-regresar"
+              >← REGRESAR</a
+            >
+            <button class="btn-exportar" onclick="enProceso(event)">
+              EXPORTAR
+            </button>
+          </div>
+        </section>
 
-                <div class="tarjeta-info tarjeta-equipo">
-                    <div class="tarjeta-etiqueta">👥 EQUIPO/FIRMA</div>
-                    <div class="tarjeta-valor">{{ data.equipo.numero }}</div>
-                </div>
+        <!-- TABS PRINCIPALES -->
+        <div class="tabs-reporte">
+          <button
+            class="tab-reporte activo"
+            onclick="cambiarTabReporte('resultados', this)"
+          >
+            📊 Resultados Generales
+          </button>
+          <button
+            class="tab-reporte"
+            id="btn-tab-marketing"
+            onclick="cambiarTabReporte('marketing', this)"
+          >
+            📢 Marketing
+          </button>
+          <button class="tab-reporte" onclick="enProceso(event)">
+            💬 Mensajes
+          </button>
+          <button class="tab-reporte" onclick="enProceso(event)">
+            🔬 I & D
+          </button>
+          <button class="tab-reporte" onclick="enProceso(event)">
+            📈 Resultados Acumulados
+          </button>
+          <button class="tab-reporte" onclick="enProceso(event)">
+            📰 Boletín
+          </button>
+          <button class="tab-reporte" onclick="enProceso(event)">
+            🔍 Estudios de Mercado
+          </button>
+        </div>
 
-                <div class="tarjeta-info tarjeta-anio">
-                    <div class="tarjeta-etiqueta">📅 RESULTADOS DEL AÑO</div>
-                    <div class="tarjeta-valor">{{ anio }}</div>
-                </div>
-
-                <div class="tarjeta-acciones">
-                    <a href="{{ url_for('alumno.panel') }}" class="btn-regresar">← REGRESAR</a>
-                    <button class="btn-exportar" onclick="enProceso(event)">EXPORTAR</button>
-                </div>
-
-            </section>
-
-            <!-- TABS PRINCIPALES -->
-            <div class="tabs-reporte">
-                <button class="tab-reporte activo" onclick="cambiarTabReporte('resultados', this)">
-                    📊 Resultados Generales
-                </button>
-                <button class="tab-reporte" onclick="enProceso(event)">
-                    📢 Marketing
-                </button>
-                <button class="tab-reporte" onclick="enProceso(event)">
-                    💬 Mensajes
-                </button>
-                <button class="tab-reporte" onclick="enProceso(event)">
-                    🔬 I & D
-                </button>
-                <button class="tab-reporte" onclick="enProceso(event)">
-                    📈 Resultados Acumulados
-                </button>
-                <button class="tab-reporte" onclick="enProceso(event)">
-                    📰 Boletín
-                </button>
-                <button class="tab-reporte" onclick="enProceso(event)">
-                    🔍 Estudios de Mercado
-                </button>
-            </div>
-
-            <!-- CONTENIDO DE TABS -->
-            <div class="contenido-tabs-reporte">
-
-                <!-- ============================================================
+        <!-- CONTENIDO DE TABS -->
+        <div class="contenido-tabs-reporte">
+          <!-- ============================================================
                      TAB 1: RESULTADOS GENERALES
                      ============================================================ -->
-                <div id="tab-reporte-resultados" class="tab-reporte-contenido activo">
-
-                    <!-- SUB-TABS -->
-                    <div class="sub-tabs-reporte">
-                        <button class="sub-tab-reporte activo" onclick="cambiarSubTab('tabla', this)">
-                            Resultados Generales
-                        </button>
-                        <button class="sub-tab-reporte" onclick="cambiarSubTab('grafico1', this)">
-                            Gráfico 1
-                        </button>
-                        <button class="sub-tab-reporte" onclick="cambiarSubTab('grafico2', this)">
-                            Gráfico 2
-                        </button>
-                        <button class="sub-tab-reporte" onclick="cambiarSubTab('grafico3', this)">
-                            Gráfico 3
-                        </button>
-                        <button class="sub-tab-reporte" onclick="cambiarSubTab('grafico4', this)">
-                            Gráfico 4
-                        </button>
-                    </div>
-
-                    <!-- SUB-TAB 1: TABLA DE RESULTADOS -->
-                    <div id="subtab-tabla" class="sub-tab-contenido activo">
-                        <div class="reporte-grid">
-
-                            <!-- Tabla principal por marca -->
-                            <div class="reporte-tabla-container">
-                                <table class="tabla-reporte">
-                                    <thead>
-                                        <tr>
-                                            <th>MARCAS</th>
-                                            {% for marca in reporte.marcas %}
-                                            <th>{{ marca.marca }}</th>
-                                            {% endfor %}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Producción (Unidades)</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.produccion) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Unid. Vends. (Unidades)</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.unidades_vendidas) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Inventario (Unidades)</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.inventario) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Precio Final ($)</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.precio_final) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Precio Promoción ($)</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.precio_final * 0.85) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Costo Trans. ($)</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.precio_final * 0.55) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Ingresos</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.ingresos if marca.ingresos else 0) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Costo Prods. Vendidos</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.costo_productos_vendidos if marca.costo_productos_vendidos else 0) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Costo Inventarios</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.costo_inventario if marca.costo_inventario else 0) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr>
-                                            <td>Publicidad</td>
-                                            {% for marca in reporte.marcas %}
-                                            <td>{{ "{:,.0f}".format(marca.publicidad if marca.publicidad else 0) }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                        <tr class="fila-destacada">
-                                            <td><strong>Contri. Bruta Marketing</strong></td>
-                                            {% for marca in reporte.marcas %}
-                                            <td><strong>{{ "{:,.0f}".format(marca.contribucion_bruta_marketing if marca.contribucion_bruta_marketing else 0) }}</strong></td>
-                                            {% endfor %}
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                <p class="nota-tabla">
-                                    (En miles de $ excepto cuando se indique)<br>
-                                    (U) = Unidades<br>
-                                    ($) = en $
-                                </p>
-                            </div>
-
-                            <!-- Resumen de la firma -->
-                            <div class="resumen-firma">
-                                <table class="tabla-resumen">
-                                    <tbody>
-                                        <tr>
-                                            <td>I & D</td>
-                                            <td>{{ "{:,.0f}".format(reporte.investigacion_total or 0) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Fuerza de Ventas</td>
-                                            <td>{{ "{:,.0f}".format(reporte.fuerza_ventas_total or 0) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Investig. de Mercado</td>
-                                            <td>{{ "{:,.0f}".format(reporte.investigacion_mercado or 0) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Costo/Util Exceptional</td>
-                                            <td>0.</td>
-                                        </tr>
-                                        <tr class="fila-destacada">
-                                            <td><strong>Contri. Neta Marketing</strong></td>
-                                            <td><strong>{{ "{:,.0f}".format(reporte.contribucion_neta_total or 0) }}</strong></td>
-                                        </tr>
-                                        <tr class="fila-destacada">
-                                            <td><strong>Presupuesto Próximo Periodo</strong></td>
-                                            <td><strong>{{ "{:,.0f}".format(reporte.presupuesto_proximo_periodo or 0) }}</strong></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB 2: GRÁFICO 1 (Ventas e Inventarios) -->
-                    <div id="subtab-grafico1" class="sub-tab-contenido">
-                        <div class="grafico-card">
-                            <h3 class="grafico-titulo">Ventas e Inventarios (Unidades)</h3>
-                            <div class="grafico-contenedor grafico-alto">
-                                <canvas id="grafico-1"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB 3: GRÁFICO 2 (Precios y Contribución) -->
-                    <div id="subtab-grafico2" class="sub-tab-contenido">
-                        <div class="grafico-card">
-                            <h3 class="grafico-titulo">Precios y Contribución Bruta Marketing</h3>
-                            <div class="grafico-contenedor grafico-alto">
-                                <canvas id="grafico-2"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB 4: GRÁFICO 3 (Costos y Fuerza Ventas) -->
-                    <div id="subtab-grafico3" class="sub-tab-contenido">
-                        <div class="grafico-card">
-                            <h3 class="grafico-titulo">Costos y Fuerza de Ventas</h3>
-                            <div class="grafico-contenedor grafico-alto">
-                                <canvas id="grafico-3"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB 5: GRÁFICO 4 (Porción de Mercado) -->
-                    <div id="subtab-grafico4" class="sub-tab-contenido">
-                        <div class="grafico-card">
-                            <h3 class="grafico-titulo">Porción de Mercado (En Unidades)</h3>
-                            <div class="grafico-contenedor grafico-alto">
-                                <canvas id="grafico-4"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
+          <div id="tab-reporte-resultados" class="tab-reporte-contenido activo">
+            <!-- SUB-TABS -->
+            <div class="sub-tabs-reporte">
+              <button
+                class="sub-tab-reporte activo"
+                onclick="cambiarSubTab('tabla', this)"
+              >
+                Resultados Generales
+              </button>
+              <button
+                class="sub-tab-reporte"
+                onclick="cambiarSubTab('grafico1', this)"
+              >
+                Gráfico 1
+              </button>
+              <button
+                class="sub-tab-reporte"
+                onclick="cambiarSubTab('grafico2', this)"
+              >
+                Gráfico 2
+              </button>
+              <button
+                class="sub-tab-reporte"
+                onclick="cambiarSubTab('grafico3', this)"
+              >
+                Gráfico 3
+              </button>
+              <button
+                class="sub-tab-reporte"
+                onclick="cambiarSubTab('grafico4', this)"
+              >
+                Gráfico 4
+              </button>
             </div>
 
-        </main>
-    </div>
+            <!-- SUB-TAB 1: TABLA DE RESULTADOS -->
+            <div id="subtab-tabla" class="sub-tab-contenido activo">
+              <div class="reporte-grid">
+                <!-- Tabla principal por marca -->
+                <div class="reporte-tabla-container">
+                  <table class="tabla-reporte">
+                    <thead>
+                      <tr>
+                        <th>MARCAS</th>
+                        {% for marca in reporte.marcas %}
+                        <th>{{ marca.marca }}</th>
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Producción (Unidades)</td>
+                        {% for marca in reporte.marcas %}
+                        <td>{{ "{:,.0f}".format(marca.produccion) }}</td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Unid. Vends. (Unidades)</td>
+                        {% for marca in reporte.marcas %}
+                        <td>{{ "{:,.0f}".format(marca.unidades_vendidas) }}</td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Inventario (Unidades)</td>
+                        {% for marca in reporte.marcas %}
+                        <td>{{ "{:,.0f}".format(marca.inventario) }}</td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Precio Final ($)</td>
+                        {% for marca in reporte.marcas %}
+                        <td>{{ "{:,.0f}".format(marca.precio_final) }}</td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Precio Promoción ($)</td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          {{ "{:,.0f}".format(marca.precio_final * 0.85) }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Costo Trans. ($)</td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          {{ "{:,.0f}".format(marca.precio_final * 0.55) }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Ingresos</td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          {{ "{:,.0f}".format(marca.ingresos if marca.ingresos
+                          else 0) }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Costo Prods. Vendidos</td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          {{ "{:,.0f}".format(marca.costo_productos_vendidos if
+                          marca.costo_productos_vendidos else 0) }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Costo Inventarios</td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          {{ "{:,.0f}".format(marca.costo_inventario if
+                          marca.costo_inventario else 0) }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      <tr>
+                        <td>Publicidad</td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          {{ "{:,.0f}".format(marca.publicidad if
+                          marca.publicidad else 0) }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      <tr class="fila-destacada">
+                        <td><strong>Contri. Bruta Marketing</strong></td>
+                        {% for marca in reporte.marcas %}
+                        <td>
+                          <strong
+                            >{{
+                            "{:,.0f}".format(marca.contribucion_bruta_marketing
+                            if marca.contribucion_bruta_marketing else 0)
+                            }}</strong
+                          >
+                        </td>
+                        {% endfor %}
+                      </tr>
+                    </tbody>
+                  </table>
 
+                  <p class="nota-tabla">
+                    (En miles de $ excepto cuando se indique)<br />
+                    (U) = Unidades<br />
+                    ($) = en $
+                  </p>
+                </div>
+
+                <!-- Resumen de la firma -->
+                <div class="resumen-firma">
+                  <table class="tabla-resumen">
+                    <tbody>
+                      <tr>
+                        <td>I & D</td>
+                        <td>
+                          {{ "{:,.0f}".format(reporte.investigacion_total or 0)
+                          }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Fuerza de Ventas</td>
+                        <td>
+                          {{ "{:,.0f}".format(reporte.fuerza_ventas_total or 0)
+                          }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Investig. de Mercado</td>
+                        <td>
+                          {{ "{:,.0f}".format(reporte.investigacion_mercado or
+                          0) }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Costo/Util Exceptional</td>
+                        <!-- 👇 AQUÍ USAMOS LA VARIABLE DINÁMICA 👇 -->
+                        <td>
+                          {{ "{:,.0f}".format(reporte.costo_util_excepcional or
+                          0) }}.
+                        </td>
+                      </tr>
+                      <tr class="fila-destacada">
+                        <td><strong>Contri. Neta Marketing</strong></td>
+                        <td>
+                          <strong
+                            >{{ "{:,.0f}".format(reporte.contribucion_neta_total
+                            or 0) }}</strong
+                          >
+                        </td>
+                      </tr>
+                      <tr class="fila-destacada">
+                        <td><strong>Presupuesto Próximo Periodo</strong></td>
+                        <td>
+                          <strong
+                            >{{
+                            "{:,.0f}".format(reporte.presupuesto_proximo_periodo
+                            or 0) }}</strong
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-TAB 2: GRÁFICO 1 (Ventas e Inventarios) -->
+            <div id="subtab-grafico1" class="sub-tab-contenido">
+              <div class="grafico-card">
+                <h3 class="grafico-titulo">Ventas e Inventarios (Unidades)</h3>
+                <div class="grafico-contenedor grafico-alto">
+                  <canvas id="grafico-1"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-TAB 3: GRÁFICO 2 (Precios y Contribución) -->
+            <div id="subtab-grafico2" class="sub-tab-contenido">
+              <div class="grafico-card">
+                <h3 class="grafico-titulo">
+                  Precios y Contribución Bruta Marketing
+                </h3>
+                <div class="grafico-contenedor grafico-alto">
+                  <canvas id="grafico-2"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-TAB 4: GRÁFICO 3 (Costos y Fuerza Ventas) -->
+            <div id="subtab-grafico3" class="sub-tab-contenido">
+              <div class="grafico-card">
+                <h3 class="grafico-titulo">Costos y Fuerza de Ventas</h3>
+                <div class="grafico-contenedor grafico-alto">
+                  <canvas id="grafico-3"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-TAB 5: GRÁFICO 4 (Porción de Mercado) -->
+            <div id="subtab-grafico4" class="sub-tab-contenido">
+              <div class="grafico-card">
+                <h3 class="grafico-titulo">Porción de Mercado (En Unidades)</h3>
+                <div class="grafico-contenedor grafico-alto">
+                  <canvas id="grafico-4"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ========================================================= -->
+          <!-- CONTENIDO DE LA PESTAÑA DE MARKETING -->
+          <!-- ========================================================= -->
+          <div id="tab-marketing" class="tab-reporte-contenido">
+            <h3
+              class="subtitulo-seccion"
+              style="color: #514653; margin-bottom: 15px"
+            >
+              MARKESTRATED
+            </h3>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap">
+              <!-- Tabla de Distribuidores y Porción de Mercado -->
+              <div style="flex: 1; min-width: 300px">
+                <!-- Tabla de Distribuidores -->
+                <table
+                  class="tabla-reporte"
+                  style="width: 100%; border-collapse: collapse"
+                >
+                  <thead>
+                    <tr style="background-color: #8b1c4e; color: white">
+                      <th style="text-align: left; padding: 8px">Marcas</th>
+                      {% for m in reporte.marcas %}
+                      <th style="text-align: right; padding: 8px">
+                        {{ m.marca }}
+                      </th>
+                      {% endfor %}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee">
+                        Porción Mercado (En Unidades)
+                      </td>
+                      {% for m in reporte.marcas %}
+                      <!-- Formateado para que salga como .11 o .04 -->
+                      <td
+                        style="
+                          text-align: right;
+                          padding: 8px;
+                          border-bottom: 1px solid #eee;
+                        "
+                      >
+                        .{{ "{:,.0f}".format(m.porcion_mercado) }}
+                      </td>
+                      {% endfor %}
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee">
+                        Número de Detallistas
+                      </td>
+                      <td style="text-align: right; padding: 8px"></td>
+                      <td style="text-align: right; padding: 8px"></td>
+                    </tr>
+                    <!-- Canales Dinámicos -->
+                    {% for canal_num in [1, 2, 3] %}
+                    <tr>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee">
+                        Canal {{ canal_num }}
+                      </td>
+                      {% for m in reporte.marcas %}
+                      <td
+                        style="
+                          text-align: right;
+                          padding: 8px;
+                          border-bottom: 1px solid #eee;
+                        "
+                      >
+                        {{ m.detallistas.get(canal_num, 0) }}
+                      </td>
+                      {% endfor %}
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Tabla de Fuerza de Ventas -->
+              <div style="flex: 1; min-width: 300px">
+                <table
+                  class="tabla-reporte"
+                  style="
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                  "
+                >
+                  <thead>
+                    <tr style="background-color: #8b1c4e; color: white">
+                      <th style="text-align: left; padding: 8px">
+                        Fuerza de Ventas
+                      </th>
+                      <th style="text-align: right; padding: 8px">Canal 1</th>
+                      <th style="text-align: right; padding: 8px">Canal 2</th>
+                      <th style="text-align: right; padding: 8px">Canal 3</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee">
+                        Vendedores
+                      </td>
+                      <!-- Aquí asumimos que tomamos la fuerza de ventas de la primera marca (SAKA) como en la imagen -->
+                      {% if reporte.marcas %}
+                      <td
+                        style="
+                          text-align: right;
+                          padding: 8px;
+                          border-bottom: 1px solid #eee;
+                        "
+                      >
+                        {{ reporte.marcas[0].fv_canal_1 }}
+                      </td>
+                      <td
+                        style="
+                          text-align: right;
+                          padding: 8px;
+                          border-bottom: 1px solid #eee;
+                        "
+                      >
+                        {{ reporte.marcas[0].fv_canal_2 }}
+                      </td>
+                      <td
+                        style="
+                          text-align: right;
+                          padding: 8px;
+                          border-bottom: 1px solid #eee;
+                        "
+                      >
+                        {{ reporte.marcas[0].fv_canal_3 }}
+                      </td>
+                      {% endif %}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
     <!-- DATOS DEL REPORTE (JSON seguro) -->
     <script id="datos-reporte" type="application/json">
-    {
-        "anio": {{ anio | tojson }},
-        "marcas": {{ reporte.marcas | tojson }},
-        "industria": {{ data.industria.nombre | tojson }},
-        "equipo": {{ data.equipo.numero | tojson }}
-    }
+      {
+          "anio": {{ anio | tojson }},
+          "marcas": {{ reporte.marcas | tojson }},
+          "industria": {{ data.industria.nombre | tojson }},
+          "equipo": {{ data.equipo.numero | tojson }}
+      }
     </script>
 
     <!-- TOAST -->
@@ -314,201 +533,274 @@
 
     <!-- FUNCIONALIDAD -->
     <script>
-    (function() {
+      (function () {
+        // ============================================================
+        // UTILIDADES GENERALES
+        // ============================================================
         function enProceso(event) {
-            if (event) event.preventDefault();
-            if (typeof mostrarToast === 'function') {
-                mostrarToast('🚧 Función en proceso. Disponible próximamente.', 'info');
-            } else {
-                alert('🚧 Función en proceso.');
-            }
+          if (event) event.preventDefault();
+          if (typeof mostrarToast === "function") {
+            mostrarToast(
+              "🚧 Función en proceso. Disponible próximamente.",
+              "info",
+            );
+          } else {
+            alert("🚧 Función en proceso.");
+          }
         }
         window.enProceso = enProceso;
 
-        // Cambiar tabs principales
-        window.cambiarTabReporte = function(tabId, boton) {
-            document.querySelectorAll('.tab-reporte').forEach(function(t) {
-                t.classList.remove('activo');
+        // ============================================================
+        // NAVEGACIÓN ENTRE PESTAÑAS PRINCIPALES (TABS)
+        // ============================================================
+        window.cambiarTabReporte = function (tabId, boton) {
+          // 1. Ocultar todos los contenidos y quitar 'activo' a los botones
+          document.querySelectorAll(".tab-reporte").forEach(function (t) {
+            t.classList.remove("activo");
+          });
+          document
+            .querySelectorAll(".tab-reporte-contenido")
+            .forEach(function (t) {
+              t.classList.remove("activo");
             });
-            boton.classList.add('activo');
 
-            document.querySelectorAll('.tab-reporte-contenido').forEach(function(t) {
-                t.classList.remove('activo');
-            });
-            document.getElementById('tab-reporte-' + tabId).classList.add('activo');
-        };
+          // 2. Activar el botón clickeado
+          boton.classList.add("activo");
 
-        // Cambiar sub-tabs
-        window.cambiarSubTab = function(subTabId, boton) {
-            document.querySelectorAll('.sub-tab-reporte').forEach(function(t) {
-                t.classList.remove('activo');
-            });
-            boton.classList.add('activo');
+          // 3. Mostrar el contenido correspondiente
+          // NOTA: Corregido para buscar "tab-" en lugar de "tab-reporte-"
+          const contenido = document.getElementById("tab-" + tabId);
+          if (contenido) {
+            contenido.classList.add("activo");
+          }
 
-            document.querySelectorAll('.sub-tab-contenido').forEach(function(t) {
-                t.classList.remove('activo');
-            });
-            document.getElementById('subtab-' + subTabId).classList.add('activo');
-
-            // Inicializar gráficos al mostrar
-            if (subTabId === 'grafico1') initGrafico1();
-            if (subTabId === 'grafico2') initGrafico2();
-            if (subTabId === 'grafico3') initGrafico3();
-            if (subTabId === 'grafico4') initGrafico4();
+          // 4. Aquí puedes inicializar lógica específica si es necesario
+          // if (tabId === 'marketing') initMarketing();
         };
 
         // ============================================================
-        // GRÁFICOS
+        // NAVEGACIÓN ENTRE SUB-PESTAÑAS (Gráficos dentro de Resultados)
+        // ============================================================
+        window.cambiarSubTab = function (subTabId, boton) {
+          document.querySelectorAll(".sub-tab-reporte").forEach(function (t) {
+            t.classList.remove("activo");
+          });
+          boton.classList.add("activo");
+
+          document.querySelectorAll(".sub-tab-contenido").forEach(function (t) {
+            t.classList.remove("activo");
+          });
+          const subtab = document.getElementById("subtab-" + subTabId);
+          if (subtab) subtab.classList.add("activo");
+
+          // Inicializar gráficos al mostrar
+          if (subTabId === "grafico1") initGrafico1();
+          if (subTabId === "grafico2") initGrafico2();
+          if (subTabId === "grafico3") initGrafico3();
+          if (subTabId === "grafico4") initGrafico4();
+        };
+
+        // ============================================================
+        // OBTENCIÓN DE DATOS
         // ============================================================
         function obtenerDatos() {
-            try {
-                const script = document.getElementById('datos-reporte');
-                return JSON.parse(script.textContent);
-            } catch (e) {
-                return { marcas: [], anio: 0 };
-            }
+          try {
+            const script = document.getElementById("datos-reporte");
+            return JSON.parse(script.textContent);
+          } catch (e) {
+            return { marcas: [], anio: 0 };
+          }
         }
 
+        // ============================================================
+        // GRÁFICOS (Resultados Generales)
+        // ============================================================
         function initGrafico1() {
-            const ctx = document.getElementById('grafico-1');
-            if (!ctx || ctx.dataset.init) return;
-            ctx.dataset.init = '1';
+          const ctx = document.getElementById("grafico-1");
+          if (!ctx || ctx.dataset.init) return;
+          ctx.dataset.init = "1";
+          const datos = obtenerDatos();
+          const marcas = datos.marcas || [];
 
-            const datos = obtenerDatos();
-            const marcas = datos.marcas || [];
-            const labels = marcas.map(m => m.marca);
-            const ventas = marcas.map(m => m.unidades_vendidas || 0);
-            const inventarios = marcas.map(m => m.inventario || 0);
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Ventas', data: ventas, backgroundColor: '#B9DDF4', borderRadius: 6 },
-                        { label: 'Inventarios', data: inventarios, backgroundColor: '#514653', borderRadius: 6 },
-                    ],
+          new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: marcas.map((m) => m.marca),
+              datasets: [
+                {
+                  label: "Ventas",
+                  data: marcas.map((m) => m.unidades_vendidas || 0),
+                  backgroundColor: "#B9DDF4",
+                  borderRadius: 6,
                 },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { font: { family: "'Patrick Hand'", size: 13 } } },
-                    },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: 'rgba(81, 70, 83, 0.08)' } },
-                        y: { grid: { display: false } },
-                    },
+                {
+                  label: "Inventarios",
+                  data: marcas.map((m) => m.inventario || 0),
+                  backgroundColor: "#514653",
+                  borderRadius: 6,
                 },
-            });
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { font: { family: "'Patrick Hand'", size: 13 } },
+                },
+              },
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(81, 70, 83, 0.08)" },
+                },
+                y: { grid: { display: false } },
+              },
+            },
+          });
         }
 
         function initGrafico2() {
-            const ctx = document.getElementById('grafico-2');
-            if (!ctx || ctx.dataset.init) return;
-            ctx.dataset.init = '1';
+          const ctx = document.getElementById("grafico-2");
+          if (!ctx || ctx.dataset.init) return;
+          ctx.dataset.init = "1";
+          const datos = obtenerDatos();
+          const marcas = datos.marcas || [];
 
-            const datos = obtenerDatos();
-            const marcas = datos.marcas || [];
-            const labels = marcas.map(m => m.marca);
-            const precioFinal = marcas.map(m => m.precio_final || 0);
-            const contribucion = marcas.map(m => m.contribucion_bruta_marketing || 0);
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Precio Final', data: precioFinal, backgroundColor: '#B9DDF4', borderRadius: 6 },
-                        { label: 'Contribución Bruta', data: contribucion, backgroundColor: '#BFE8D1', borderRadius: 6 },
-                    ],
+          new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: marcas.map((m) => m.marca),
+              datasets: [
+                {
+                  label: "Precio Final",
+                  data: marcas.map((m) => m.precio_final || 0),
+                  backgroundColor: "#B9DDF4",
+                  borderRadius: 6,
                 },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { font: { family: "'Patrick Hand'", size: 13 } } },
-                    },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: 'rgba(81, 70, 83, 0.08)' } },
-                        y: { grid: { display: false } },
-                    },
+                {
+                  label: "Contribución Bruta",
+                  data: marcas.map((m) => m.contribucion_bruta_marketing || 0),
+                  backgroundColor: "#BFE8D1",
+                  borderRadius: 6,
                 },
-            });
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { font: { family: "'Patrick Hand'", size: 13 } },
+                },
+              },
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(81, 70, 83, 0.08)" },
+                },
+                y: { grid: { display: false } },
+              },
+            },
+          });
         }
 
         function initGrafico3() {
-            const ctx = document.getElementById('grafico-3');
-            if (!ctx || ctx.dataset.init) return;
-            ctx.dataset.init = '1';
+          const ctx = document.getElementById("grafico-3");
+          if (!ctx || ctx.dataset.init) return;
+          ctx.dataset.init = "1";
+          const datos = obtenerDatos();
+          const marcas = datos.marcas || [];
 
-            const datos = obtenerDatos();
-            const marcas = datos.marcas || [];
-            const labels = marcas.map(m => m.marca);
-            const publicidad = marcas.map(m => m.publicidad || 0);
-            const costoProductos = marcas.map(m => m.costo_productos_vendidos || 0);
-            const costoInventario = marcas.map(m => m.costo_inventario || 0);
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Publicidad', data: publicidad, backgroundColor: '#BFE8D1', borderRadius: 6 },
-                        { label: 'Costo Productos', data: costoProductos, backgroundColor: '#B9DDF4', borderRadius: 6 },
-                        { label: 'Costo Inventario', data: costoInventario, backgroundColor: '#F6C6D0', borderRadius: 6 },
-                    ],
+          new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: marcas.map((m) => m.marca),
+              datasets: [
+                {
+                  label: "Publicidad",
+                  data: marcas.map((m) => m.publicidad || 0),
+                  backgroundColor: "#BFE8D1",
+                  borderRadius: 6,
                 },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { font: { family: "'Patrick Hand'", size: 13 } } },
-                    },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: 'rgba(81, 70, 83, 0.08)' } },
-                        y: { grid: { display: false } },
-                    },
+                {
+                  label: "Costo Productos",
+                  data: marcas.map((m) => m.costo_productos_vendidos || 0),
+                  backgroundColor: "#B9DDF4",
+                  borderRadius: 6,
                 },
-            });
+                {
+                  label: "Costo Inventario",
+                  data: marcas.map((m) => m.costo_inventario || 0),
+                  backgroundColor: "#F6C6D0",
+                  borderRadius: 6,
+                },
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { font: { family: "'Patrick Hand'", size: 13 } },
+                },
+              },
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(81, 70, 83, 0.08)" },
+                },
+                y: { grid: { display: false } },
+              },
+            },
+          });
         }
 
         function initGrafico4() {
-            const ctx = document.getElementById('grafico-4');
-            if (!ctx || ctx.dataset.init) return;
-            ctx.dataset.init = '1';
+          const ctx = document.getElementById("grafico-4");
+          if (!ctx || ctx.dataset.init) return;
+          ctx.dataset.init = "1";
+          const datos = obtenerDatos();
+          const marcas = datos.marcas || [];
 
-            const datos = obtenerDatos();
-            const marcas = datos.marcas || [];
-            const labels = marcas.map(m => m.marca);
-            const porciones = marcas.map(m => m.porcion_mercado || 0);
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Porción de Mercado (%)', data: porciones, backgroundColor: '#C9B6E4', borderRadius: 6 },
-                    ],
+          new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: marcas.map((m) => m.marca),
+              datasets: [
+                {
+                  label: "Porción de Mercado (%)",
+                  data: marcas.map((m) => m.porcion_mercado || 0),
+                  backgroundColor: "#C9B6E4",
+                  borderRadius: 6,
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(81, 70, 83, 0.08)' } },
-                        x: { grid: { display: false } },
-                    },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(81, 70, 83, 0.08)" },
                 },
-            });
+                x: { grid: { display: false } },
+              },
+            },
+          });
         }
-    })();
-    </script>
 
-</body>
+        // ============================================================
+        // ESPACIO RESERVADO PARA FUTURAS PESTAÑAS (Marketing, I&D, etc.)
+        // ============================================================
+        // function initMarketing() { ... }
+        // function initIyD() { ... }
+        // function initEstudios() { ... }
+      })();
+    </script>
+  </body>
 </html>

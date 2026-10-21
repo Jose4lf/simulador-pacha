@@ -389,6 +389,12 @@ class Reporte(Base):
     contribucion_bruta_total = Column(Float, default=0)
     contribucion_neta_total = Column(Float, default=0)
     presupuesto_proximo_periodo = Column(Float, default=0)
+    # 👇 AGREGA ESTOS 4 CAMPOS NUEVOS 👇
+    investigacion_total = Column(Float, default=0)
+    fuerza_ventas_total = Column(Float, default=0)
+    investigacion_mercado = Column(Float, default=0)
+    costo_util_excepcional = Column(Float, default=0)
+    
     inflacion_aplicada = Column(Float, default=0)
     crecimiento_pnb = Column(Float, default=0)
     tipo_cambio = Column(Float, default=0)

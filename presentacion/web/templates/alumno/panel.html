@@ -47,10 +47,6 @@
             <span class="sidebar-icon">📝</span>
             <span class="sidebar-label">Decisiones</span>
           </a>
-          <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item">
-            <span class="sidebar-icon">📊</span>
-            <span class="sidebar-label">Estudios</span>
-          </a>
           <a href="{{ url_for('alumno.manual') }}" class="sidebar-item">
             <span class="sidebar-icon">📖</span>
             <span class="sidebar-label">Manual</span>
@@ -67,36 +63,6 @@
         <!-- TÍTULO -->
         <h1 class="panel-titulo">Panel de Alumno</h1>
         <p class="panel-subtitulo">MARKESTRATED</p>
-        <!-- DEBUG TEMPORAL -->
-        <div
-          style="
-            background: #fff1c7;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 13px;
-          "
-        >
-          <strong>🐛 DEBUG:</strong><br />
-          <strong>Equipo ID:</strong> {{ data.equipo.id }}<br />
-          <strong>Equipo Número:</strong> {{ data.equipo.numero }}<br />
-          <strong>Reportes recibidos:</strong> {{ reportes|length }}<br />
-          <strong>Años disponibles:</strong>
-          {% for r in reportes %}
-          <span
-            style="
-              background: #b9ddf4;
-              padding: 2px 8px;
-              border-radius: 4px;
-              margin: 2px;
-            "
-            >{{ r.anio }}</span
-          >
-          {% endfor %} {% if not reportes %}
-          <span style="color: red">❌ NINGUNO</span>
-          {% endif %}
-        </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %} {% if
         messages %} {% for category, message in messages %}
@@ -152,9 +118,8 @@
 
           <div class="botones-anios">
             {% for i in range(0, data.industria.anio_maximo + 1) %} {% set
-            anio_disponible = false %} {% for r in reportes %} {% if r.anio == i
-            %} {% set anio_disponible = true %} {% endif %} {% endfor %} {% if
-            anio_disponible %}
+            anio_disponible = reportes | selectattr("anio", "equalto", i) | list
+            | length > 0 %} {% if anio_disponible %}
             <a
               href="{{ url_for('alumno.reporte', anio=i) }}"
               class="btn-anio disponible"
