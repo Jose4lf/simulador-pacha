@@ -7,7 +7,8 @@ Luego, los modelos normalizados crearán las 35 tablas nuevas.
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Esto le dice a Python que suba un nivel desde 'scripts/' hasta la raíz del proyecto
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 
 from sqlalchemy import text
 from infraestructura.database import inicializar_db, get_session

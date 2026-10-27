@@ -5,14 +5,15 @@ Ejecutar: python resetear_decano.py
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Esto le dice a Python que suba un nivel desde 'scripts/' hasta la raíz del proyecto
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 
 from werkzeug.security import generate_password_hash
 from infraestructura.database import inicializar_db, get_session
 from core.models import Usuario
 
 
-NUEVA_PASSWORD = "pacha2026"  # ← Cambia esto si quieres otra
+NUEVA_PASSWORD = "123"  # 👈 Contraseña exacta solicitada
 
 
 def resetear():
@@ -24,26 +25,30 @@ def resetear():
     session = get_session()
 
     try:
-        decano = session.query(Usuario).filter_by(username="decano", rol="decano").first()
+        # Buscamos al usuario decano (por username 'admin' o rol 'decano')
+        decano = session.query(Usuario).filter(Usuario.username == "admin").first()
 
         if not decano:
-            print("⚠️  No existe el usuario 'decano'. Creando...")
+            print("⚠️  No existe el usuario 'admin'. Creando...")
             decano = Usuario(
-                username="decano",
+                username="admin", # Usuario para iniciar sesión
                 password_hash=generate_password_hash(NUEVA_PASSWORD),
-                rol="decano",
+                rol="decano",     # Le ponemos el rol 'decano' para que el login lo reconozca
                 nombre="Decano (Administrador)",
             )
             session.add(decano)
             session.commit()
-            print(f"✅ Usuario decano creado con contraseña: {NUEVA_PASSWORD}")
+            print(f"✅ Usuario admin creado con contraseña: {NUEVA_PASSWORD}")
         else:
             decano.password_hash = generate_password_hash(NUEVA_PASSWORD)
+            # Por si acaso estaba con el rol 'admin' viejo, lo corregimos a 'decano'
+            if decano.rol == "admin":
+                decano.rol = "decano" 
             session.commit()
-            print(f"✅ Contraseña del decano reseteada a: {NUEVA_PASSWORD}")
+            print(f"✅ Contraseña del usuario admin reseteada a: {NUEVA_PASSWORD}")
 
         print("\n" + "=" * 60)
-        print(f"  Usuario:    decano")
+        print(f"  Usuario:    {decano.username}")
         print(f"  Contraseña: {NUEVA_PASSWORD}")
         print("=" * 60 + "\n")
 

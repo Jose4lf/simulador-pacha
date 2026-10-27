@@ -231,15 +231,40 @@ def contrasenas():
     if not _verificar_decano():
         return redirect(url_for("auth.index"))
 
-    busqueda = request.args.get("q", "").strip()
-    usuarios = DecanoService.listar_usuarios_para_password(busqueda)
+    usuarios = DecanoService.listar_todos_los_usuarios()
 
     return render_template(
         "decano/contrasenas.html",
         nombre=session.get("nombre"),
-        usuarios=usuarios,
-        busqueda=busqueda
+        usuarios=usuarios  # 👈 Enviamos todos los usuarios
     )
+
+@decano_bp.route("/usuarios/<int:usuario_id>/eliminar", methods=["POST"])
+
+def eliminar_usuario(usuario_id):
+    if not _verificar_decano():
+        return jsonify({"error": "No autorizado"}), 403
+
+    resultado = DecanoService.eliminar_usuario(usuario_id)
+    
+    if "error" in resultado:
+        flash(resultado["error"], "error")
+    else:
+        flash("Usuario eliminado (desactivado) correctamente.", "exito")
+        
+    return redirect(url_for("decano.contrasenas"))
+
+@decano_bp.route("/usuarios/<int:usuario_id>/resetear", methods=["POST"])
+def resetear_password_usuario(usuario_id):
+    if not _verificar_decano():
+        return jsonify({"error": "No autorizado"}), 403
+
+    resultado = DecanoService.resetear_password_usuario(usuario_id)
+    
+    if "error" in resultado:
+        return jsonify(resultado), 400
+        
+    return jsonify(resultado) # Devolvemos éxito y la nueva contraseña
 
 
 @decano_bp.route("/contrasenas/resetear/<int:usuario_id>", methods=["POST"])

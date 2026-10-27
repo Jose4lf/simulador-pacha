@@ -163,6 +163,8 @@ class SimulacionService:
             return {"error": str(e)}
         finally:
             session.close()
+            
+            
     @staticmethod
     def _generar_datos_estudios(session, industria_id, equipos, anio):
         """Genera y guarda los datos de los estudios comprados."""

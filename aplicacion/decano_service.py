@@ -3,7 +3,7 @@ Servicio del Decano - PACHA (esquema normalizado)
 """
 from werkzeug.security import generate_password_hash
 from infraestructura.database import get_session
-from core.models import Usuario, Simulador, AsignacionSimulador, Configuracion
+from core.models import Usuario, Simulador, AsignacionSimulador, Configuracion,Industria,Equipo
 
 
 class DecanoService:
@@ -200,15 +200,24 @@ class DecanoService:
             session.close()
 
     @staticmethod
-    def resetear_password_usuario(usuario_id, nueva_password="pacha2026"):
+    def resetear_password_usuario(usuario_id):
+        from werkzeug.security import generate_password_hash
         session = get_session()
         try:
-            u = session.query(Usuario).filter_by(id=usuario_id).first()
-            if not u:
+            user = session.query(Usuario).filter_by(id=usuario_id).first()
+            if not user:
                 return {"error": "Usuario no encontrado"}
-            u.password_hash = generate_password_hash(nueva_password)
+            
+            # Si es alumno o profesor, la contraseña cambia a PASSWORD
+            # Si es decano, se la dejamos en '123' para no bloquearlo
+            nueva_pass = "PASSWORD" if user.rol in ["alumno", "profesor"] else "123"
+            
+            user.password_hash = generate_password_hash(nueva_pass)
             session.commit()
-            return {"ok": True, "username": u.username, "password": nueva_password}
+            return {"ok": True, "nueva_pass": nueva_pass, "username": user.username}
+        except Exception as e:
+            session.rollback()
+            return {"error": str(e)}
         finally:
             session.close()
 
@@ -268,5 +277,61 @@ class DecanoService:
                 "total_usuarios": session.query(Usuario).count(),
                 "total_simuladores": session.query(Simulador).count(),
             }
+        finally:
+            session.close()
+    # ============================================================
+    # ELIMINAR USUARIOS,LISTAR USUARIOS
+    # ===========================================================
+    @staticmethod
+    def listar_todos_los_usuarios():
+        session = get_session()
+        try:
+            # Hacemos un LEFT JOIN para traer a TODOS los usuarios.
+            # Si es alumno, traerá su equipo e industria. Si es docente, esos campos serán None.
+            usuarios = session.query(Usuario, Equipo, Industria).outerjoin(
+                Equipo, Usuario.equipo_id == Equipo.id
+            ).outerjoin(
+                Industria, Equipo.industria_id == Industria.id
+            ).all()
+
+            resultado = []
+            for user, equipo, industria in usuarios:
+                # Armamos el contexto (para alumnos) o el título (para profesores)
+                contexto = "Sin asignar"
+                if user.rol == "alumno" and equipo and industria:
+                    contexto = f"Grupo {equipo.numero} - {industria.nombre}"
+                elif user.rol == "profesor":
+                    contexto = "Docente"
+                elif user.rol == "decano":
+                    contexto = "Administrador"
+
+                resultado.append({
+                    "id": user.id,
+                    "username": user.username,
+                    "nombre": user.nombre,
+                    "rol": user.rol,
+                    "status": "Activo" if user.activo else "Inactivo",
+                    "contexto": contexto # Aquí va la industria y equipo
+                })
+            return resultado
+        finally:
+            session.close()
+
+    @staticmethod
+    def eliminar_usuario(usuario_id):
+        session = get_session()
+        try:
+            user = session.query(Usuario).filter_by(id=usuario_id).first()
+            if not user:
+                return {"error": "Usuario no encontrado"}
+            
+            # Para no romper la base de datos por llaves foráneas, solo lo desactivamos
+            user.activo = False
+            user.equipo_id = None # Lo sacamos del equipo si es alumno
+            session.commit()
+            return {"ok": True}
+        except Exception as e:
+            session.rollback()
+            return {"error": str(e)}
         finally:
             session.close()

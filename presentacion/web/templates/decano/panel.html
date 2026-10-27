@@ -1,156 +1,348 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>PACHA - Panel de Decano</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/decano.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-</head>
-<body class="decano-body">
-
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/decano.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="decano-body">
     <!-- HEADER -->
     <header class="header">
-        <div class="header-izq">
-            <span class="logo-icono">⛰️</span>
-            <span class="logo-texto">PACHA</span>
+      <div class="header-izq">
+        <span class="logo-icono">⛰️</span>
+        <span class="logo-texto">PACHA</span>
+      </div>
+      <div class="header-der">
+        <div class="header-idioma">
+          <span>🇧🇴</span>
+          <span>Español</span>
+          <span class="flecha">▾</span>
         </div>
-        <div class="header-der">
-            <div class="header-idioma">
-                <span>🇧🇴</span>
-                <span>Español</span>
-                <span class="flecha">▾</span>
-            </div>
-            <div class="header-usuario">
-                <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
-                <div class="datos">
-                    <div class="nombre">{{ nombre }}</div>
-                    <div class="rol">Decano</div>
-                </div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        <div class="header-usuario">
+          <div class="avatar">{{ nombre[0] if nombre else 'D' }}</div>
+          <div class="datos">
+            <div class="nombre">{{ nombre }}</div>
+            <div class="rol">Decano</div>
+          </div>
         </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+      </div>
     </header>
 
     <!-- CONTENEDOR PRINCIPAL -->
     <div class="contenedor">
-        <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Colapsar/Expandir menú">
-    ☰
-</button>
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <nav class="sidebar-nav">
+      <button
+        class="btn-toggle-sidebar"
+        onclick="toggleSidebar()"
+        title="Colapsar/Expandir menú"
+      >
+        ☰
+      </button>
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('decano.panel') }}" class="sidebar-item activo">
+            <span class="sidebar-icon">🏠</span>
+            <span class="sidebar-label">Inicio</span>
+          </a>
 
-                <a href="{{ url_for('decano.panel') }}" class="sidebar-item activo">
-                    <span class="sidebar-icon">🏠</span>
-                    <span class="sidebar-label">Inicio</span>
-                </a>
+          <!-- Profesores con submenú -->
+          <div
+            class="sidebar-item sidebar-item-padre"
+            onclick="toggleSubmenu('sub-profesores')"
+          >
+            <span class="sidebar-icon">🎓</span>
+            <span class="sidebar-label">Profesores</span>
+            <span class="sidebar-arrow">▾</span>
+          </div>
+          <div class="sidebar-submenu" id="sub-profesores">
+            <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem"
+              >👥 Ver todos</a
+            >
+            <a
+              href="{{ url_for('decano.agregar_profesor') }}"
+              class="sidebar-subitem"
+              >➕ Agregar</a
+            >
+            <a
+              href="{{ url_for('decano.editar_profesor_selector') }}"
+              class="sidebar-subitem"
+              >✏️ Editar</a
+            >
+          </div>
 
-                <!-- Profesores con submenú -->
-                <div class="sidebar-item sidebar-item-padre" onclick="toggleSubmenu('sub-profesores')">
-                    <span class="sidebar-icon">🎓</span>
-                    <span class="sidebar-label">Profesores</span>
-                    <span class="sidebar-arrow">▾</span>
-                </div>
-                <div class="sidebar-submenu" id="sub-profesores">
-                    <a href="{{ url_for('decano.profesores') }}" class="sidebar-subitem">👥 Ver todos</a>
-                    <a href="{{ url_for('decano.agregar_profesor') }}" class="sidebar-subitem">➕ Agregar</a>
-                    <a href="{{ url_for('decano.editar_profesor_selector') }}" class="sidebar-subitem">✏️ Editar</a>
-                </div>
+          <a href="{{ url_for('decano.permisos') }}" class="sidebar-item">
+            <span class="sidebar-icon">🔐</span>
+            <span class="sidebar-label">Permisos Asignados</span>
+          </a>
 
-                <a href="{{ url_for('decano.permisos') }}" class="sidebar-item">
-                    <span class="sidebar-icon">🔐</span>
-                    <span class="sidebar-label">Permisos Asignados</span>
-                </a>
+          <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Simulaciones</span>
+          </a>
 
-                <a href="{{ url_for('decano.simulaciones') }}" class="sidebar-item">
-                    <span class="sidebar-icon">📊</span>
-                    <span class="sidebar-label">Simulaciones</span>
-                </a>
+          <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item">
+            <span class="sidebar-icon">🔑</span>
+            <span class="sidebar-label">Administrar Contraseña</span>
+          </a>
 
-                <a href="{{ url_for('decano.contrasenas') }}" class="sidebar-item">
-                    <span class="sidebar-icon">🔑</span>
-                    <span class="sidebar-label">Administrar Contraseña</span>
-                </a>
+          <a href="{{ url_for('decano.config') }}" class="sidebar-item">
+            <span class="sidebar-icon">⚙️</span>
+            <span class="sidebar-label">Configuración</span>
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <p>© PACHA 2026</p>
+          <p>v1.0</p>
+        </div>
+      </aside>
 
-                <a href="{{ url_for('decano.config') }}" class="sidebar-item">
-                    <span class="sidebar-icon">⚙️</span>
-                    <span class="sidebar-label">Configuración</span>
-                </a>
+      <!-- CONTENIDO PRINCIPAL -->
+      <main class="main-contenido">
+        <!-- 1. TÍTULO Y ACCIONES RÁPIDAS -->
+        <div class="bienvenida" style="margin-bottom: 25px">
+          <h1
+            class="bienvenida-titulo"
+            style="font-size: 2.5rem; margin-bottom: 5px"
+          >
+            ¡Hola, Decano!
+          </h1>
+          <p class="bienvenida-texto" style="margin-bottom: 20px">
+            ¿Qué quieres hacer hoy?
+          </p>
 
-            </nav>
-            <div class="sidebar-footer">
-                <p>© PACHA 2026</p>
-                <p>v1.0</p>
+          <!-- Botones de acción rápida -->
+          <div style="display: flex; gap: 15px; flex-wrap: wrap">
+            <a
+              href="{{ url_for('decano.agregar_profesor') }}"
+              style="
+                background-color: #5dade2;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span>➕</span> Agregar profesor
+            </a>
+            <a
+              href="{{ url_for('decano.permisos') }}"
+              style="
+                background-color: #f4f6f7;
+                color: #333;
+                border: 1px solid #ccc;
+                padding: 10px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span>🔗</span> Asignar simulador
+            </a>
+            <a
+              href="{{ url_for('decano.contrasenas') }}"
+              style="
+                background-color: #f4f6f7;
+                color: #333;
+                border: 1px solid #ccc;
+                padding: 10px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span>🔑</span> Resetear contraseña
+            </a>
+          </div>
+        </div>
+
+        <!-- 2. TARJETAS DE ESTADÍSTICAS (Mismo estilo, solo ordenadas) -->
+        <section class="stats-grid">
+          <!-- 1. Profesores -->
+          <div class="stat-card stat-profesores">
+            <div class="stat-icono">🎓</div>
+            <div class="stat-contenido">
+              <div class="stat-etiqueta">PROFESORES</div>
+              <div class="stat-valor">{{ stats.total_profesores }}</div>
             </div>
-        </aside>
+          </div>
 
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="main-contenido">
-
-            <!-- Bienvenida -->
-            <div class="bienvenida">
-                <h1 class="bienvenida-titulo">¡Hola!</h1>
-                <p class="bienvenida-texto">
-                    Para comenzar, haz clic en el menú de la izquierda, 
-                    o en el ícono de tres líneas horizontales en la parte superior izquierda.
-                </p>
+          <!-- 2. Simuladores -->
+          <div class="stat-card stat-simuladores">
+            <div class="stat-icono">📊</div>
+            <div class="stat-contenido">
+              <div class="stat-etiqueta">SIMULADORES</div>
+              <div class="stat-valor">{{ stats.total_simuladores }}</div>
             </div>
+          </div>
 
-            <!-- Tarjetas de estadísticas -->
-            <section class="stats-grid">
-                <div class="stat-card stat-profesores">
-                    <div class="stat-icono">🎓</div>
-                    <div class="stat-contenido">
-                        <div class="stat-etiqueta">PROFESORES</div>
-                        <div class="stat-valor">{{ stats.total_profesores }}</div>
-                    </div>
-                </div>
+          <!-- 3. Alumnos -->
+          <div class="stat-card stat-alumnos">
+            <div class="stat-icono">👤</div>
+            <div class="stat-contenido">
+              <div class="stat-etiqueta">ALUMNOS</div>
+              <div class="stat-valor">{{ stats.total_alumnos }}</div>
+            </div>
+          </div>
 
-                <div class="stat-card stat-alumnos">
-                    <div class="stat-icono">👤</div>
-                    <div class="stat-contenido">
-                        <div class="stat-etiqueta">ALUMNOS</div>
-                        <div class="stat-valor">{{ stats.total_alumnos }}</div>
-                    </div>
-                </div>
+          <!-- 4. Usuarios -->
+          <div class="stat-card stat-usuarios">
+            <div class="stat-icono">👥</div>
+            <div class="stat-contenido">
+              <div class="stat-etiqueta">USUARIOS</div>
+              <div class="stat-valor">{{ stats.total_usuarios }}</div>
+            </div>
+          </div>
+        </section>
 
-                <div class="stat-card stat-usuarios">
-                    <div class="stat-icono">👥</div>
-                    <div class="stat-contenido">
-                        <div class="stat-etiqueta">USUARIOS</div>
-                        <div class="stat-valor">{{ stats.total_usuarios }}</div>
-                    </div>
-                </div>
+        <!-- 3. BARRA DE PROGRESO (Configuración inicial) -->
+        <section
+          style="
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 15px;
+            "
+          >
+            <h3 style="color: #514653; margin: 0; font-size: 1.2rem">
+              Configuración inicial
+            </h3>
+            <span style="color: #888; font-size: 14px">1 de 3 pasos</span>
+          </div>
 
-                <div class="stat-card stat-simuladores">
-                    <div class="stat-icono">📊</div>
-                    <div class="stat-contenido">
-                        <div class="stat-etiqueta">SIMULADORES</div>
-                        <div class="stat-valor">{{ stats.total_simuladores }}</div>
-                    </div>
-                </div>
-            </section>
+          <!-- Barra visual -->
+          <div
+            style="
+              width: 100%;
+              background: #e9ecef;
+              height: 8px;
+              border-radius: 4px;
+              margin-bottom: 25px;
+            "
+          >
+            <div
+              style="
+                width: 33%;
+                background: #8b1c4e;
+                height: 8px;
+                border-radius: 4px;
+              "
+            ></div>
+          </div>
 
-        </main>
+          <!-- Lista de tareas -->
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 15px;
+            "
+          >
+            <li style="display: flex; align-items: center; gap: 10px">
+              <span style="color: #28a745; font-size: 18px">✅</span>
+              <span style="color: #28a745; font-weight: 500"
+                >Crear profesores ({{ stats.total_profesores }})</span
+              >
+            </li>
+
+            <li
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                justify-content: space-between;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 10px">
+                <span style="color: #f39c12; font-size: 18px">🟡</span>
+                <span style="color: #514653; font-weight: 500"
+                  >Asignar simuladores a profesores</span
+                >
+              </div>
+              <a
+                href="{{ url_for('decano.permisos') }}"
+                style="
+                  background: #f39c12;
+                  color: white;
+                  padding: 5px 15px;
+                  border-radius: 6px;
+                  text-decoration: none;
+                  font-size: 13px;
+                "
+                >Asignar</a
+              >
+            </li>
+
+            <li style="display: flex; align-items: center; gap: 10px">
+              <span style="color: #ccc; font-size: 18px">⚪</span>
+              <span style="color: #888; font-weight: 500"
+                >Registrar alumnos ({{ stats.total_alumnos }})</span
+              >
+            </li>
+          </ul>
+        </section>
+      </main>
     </div>
 
     <script>
         function toggleSubmenu(id) {
-            const submenu = document.getElementById(id);
-            const padre = submenu.previousElementSibling;
-            const arrow = padre.querySelector('.sidebar-arrow');
-
-            if (submenu.classList.contains('abierto')) {
-                submenu.classList.remove('abierto');
-                padre.classList.remove('abierto');
-                if (arrow) arrow.textContent = '▾';
-            } else {
-                submenu.classList.add('abierto');
-                padre.classList.add('abierto');
-                if (arrow) arrow.textContent = '▴';
-            }
+        const submenu = document.getElementById(id);
+        const padre = submenu.previousElementSibling;
+        const arrow = padre.querySelector(".sidebar-arrow");
+        if (submenu.classList.contains("abierto")) {
+          submenu.classList.remove("abierto");
+          padre.classList.remove("abierto");
+          if (arrow) arrow.textContent = "▾";
+        } else {
+          submenu.classList.add("abierto");
+          padre.classList.add("abierto");
+          if (arrow) arrow.textContent = "▴";
         }
-    </script>
+      }
+      function toggleSidebar() {
+        document.body.classList.toggle("sidebar-colapsado");
+        // Guardar preferencia en el navegador
+        localStorage.setItem(
+          "sidebar-colapsado",
+          document.body.classList.contains("sidebar-colapsado"),
+        );
+      }
 
-</body>
+      // Restaurar estado al cargar la página
+      document.addEventListener("DOMContentLoaded", function () {
+        if (localStorage.getItem("sidebar-colapsado") === "true") {
+          document.body.classList.add("sidebar-colapsado");
+        }
+      });
+    </script>
+  </body>
 </html>

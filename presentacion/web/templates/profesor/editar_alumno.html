@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Editar Alumno</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #A8D5E8;
+            box-shadow: 0 0 0 3px rgba(168, 213, 232, 0.3);
+        }
+        .btn-guardar {
+            background: #BFE8D1;
+            color: #333;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        .btn-guardar:hover { background: #A7D9BC; }
+        
+        .btn-cancelar {
+            background: #E9ECEF;
+            color: #333;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            display: inline-block;
+        }
+        .btn-eliminar {
+            background: #F6C6D0;
+            color: #333;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Aquí podrías incluir tu header si lo tienes en un archivo base, 
+         pero como es un formulario independiente, lo dejamos limpio -->
+
+    <div style="padding: 40px 20px; background: #f8f9fa; min-height: 100vh;">
+        
+        <div style="max-width: 800px; margin: 0 auto 20px auto;">
+            <a href="{{ url_for('profesor.contrasenas') }}" style="color: #666; text-decoration: none; font-weight: bold;">
+                ← Volver a la lista
+            </a>
+            <h1 style="font-family: 'Amatic SC', cursive; font-size: 3rem; color: #514653; margin: 10px 0;">
+                Editar Alumno: {{ alumno.nombre }}
+            </h1>
+        </div>
+
+        <div class="form-container">
+            <form method="POST" action="{{ url_for('profesor.editar_alumno', alumno_id=alumno.id) }}">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Usuario (No editable) -->
+                    <div class="form-group">
+                        <label>Usuario (No editable)</label>
+                        <input type="text" class="form-control" value="{{ alumno.username }}" disabled style="background: #f5f5f5; cursor: not-allowed;">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <input type="email" name="email" class="form-control" value="{{ alumno.email or '' }}" placeholder="ejemplo@correo.com">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Nombre -->
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" name="nombre" class="form-control" value="{{ alumno.nombre }}" required>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="form-group">
+                        <label>Nueva Contraseña</label>
+                        <input type="password" name="password" class="form-control" placeholder="Dejar en blanco para no cambiar">
+                        <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">Si se deja vacío, la contraseña actual no cambiará.</small>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Equipo -->
+                    <div class="form-group">
+                        <label>Equipo Asignado</label>
+                        <select name="equipo_id" class="form-control">
+                            <option value="">-- Sin Equipo --</option>
+                            {% for eq in equipos %}
+                                <option value="{{ eq.id }}" {% if alumno.equipo_id == eq.id %}selected{% endif %}>
+                                    {{ eq.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Estado (Activo/Inactivo) -->
+                    <div class="form-group" style="display: flex; flex-direction: column; justify-content: center;">
+                        <label>Estado del Alumno</label>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                            <input type="checkbox" name="activo" id="activo" {% if alumno.activo %}checked{% endif %} style="width: 20px; height: 20px; cursor: pointer;">
+                            <label for="activo" style="margin: 0; font-weight: normal; cursor: pointer;">Activo (Permitir acceso)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <!-- Botón Borrar (Izquierda) -->
+                    <button type="button" onclick="confirmarBorrado()" class="btn-eliminar">
+                        🗑️ Eliminar Alumno
+                    </button>
+
+                    <!-- Botones Guardar/Cancelar (Derecha) -->
+                    <div style="display: flex; gap: 15px;">
+                        <a href="{{ url_for('profesor.contrasenas') }}" class="btn-cancelar">Cancelar</a>
+                        <button type="submit" class="btn-guardar">💾 Guardar Cambios</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Formulario oculto para eliminar (para no anidar forms) -->
+            <form id="form-eliminar" method="POST" action="{{ url_for('profesor.eliminar_alumno', alumno_id=alumno.id) }}" style="display: none;"></form>
+        </div>
+    </div>
+
+    <script>
+        function confirmarBorrado() {
+            if (confirm('¿Estás seguro de que deseas eliminar/desvincular a este alumno del equipo? Esta acción no se puede deshacer.')) {
+                document.getElementById('form-eliminar').submit();
+            }
+        }
+    </script>
+</body>
+</html>
