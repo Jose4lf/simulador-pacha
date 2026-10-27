@@ -7,7 +7,7 @@ from core.models import (
     Usuario, Simulador, Industria, Equipo, Marca,
     Segmento, Canal, Decision, Reporte, ReporteMarca, 
     DecisionMarca, EstudioMercado, DecisionEstudio,
-    ReporteMarcaCanal, FuerzaVentas  # 👈 AGREGA ESTOS DOS
+    ReporteMarcaCanal, FuerzaVentas
 )
 from core.generador_nombres import generar_nombres_todos_equipos, vocal_equipo
 
@@ -24,7 +24,8 @@ DEFAULT_SEGMENTOS = [
 DEFAULT_CANALES = [
     {"numero": 1, "nombre": "Canal 1", "total_distribuidores": 3000, "margen_promedio": 0.40},
     {"numero": 2, "nombre": "Canal 2", "total_distribuidores": 35000, "margen_promedio": 0.35},
-    {"numero": 3, "nombre": "Canal 3", "total_distribuidores": 4000, "margin_promedio": 0.40},
+    # CORREGIDO: "margin_promedio" cambiado a "margen_promedio"
+    {"numero": 3, "nombre": "Canal 3", "total_distribuidores": 4000, "margen_promedio": 0.40}, 
 ]
 
 
@@ -200,6 +201,7 @@ class ProfesorService:
                 num_equipos, tipo="SONITE", marcas_por_equipo=2
             )
 
+            # 5. Crear equipos con sus marcas y reporte del Año 0
             for num_equipo in range(1, num_equipos + 1):
                 equipo = Equipo(
                     industria_id=ind.id,
@@ -259,8 +261,6 @@ class ProfesorService:
                 # ============================================================
                 # CREAR REPORTE INICIAL DEL AÑO 0 (Datos exactos por equipo)
                 # ============================================================
-                from core.models import Reporte, ReporteMarca
-
                 # Asignar totales según el número de equipo (Perfiles variados)
                 neta_total = 0.0
                 bruta_total = 0.0
@@ -271,25 +271,20 @@ class ProfesorService:
                 costo_exc = 0.0
 
                 if num_equipo == 1:
-                    # PERFIL: Regular (Gasto alto en vendedores)
                     neta_total, bruta_total, presupuesto = 4700.0, 6166.0, 7000.0
                     fv_total = -1466.0
                 elif num_equipo == 2:
-                    # PERFIL: Mala (Bruta baja, pero FV POSITIVA por bono/extra)
                     neta_total, bruta_total, presupuesto = 7308.0, 7000.0, 8000.0
-                    fv_total = 308.0  # 7000 + 308 = 7308
+                    fv_total = 308.0
                 elif num_equipo == 3:
-                    # PERFIL: Muy Buena (Muy eficientes, poco gasto en FV)
                     neta_total, bruta_total, presupuesto = 15950.0, 16500.0, 9500.0
-                    fv_total = -550.0  # 16500 - 550 = 15950
+                    fv_total = -550.0
                 elif num_equipo == 4:
-                    # PERFIL: Excelente (Ventas altísimas, invierten mucho pero ganan más)
                     neta_total, bruta_total, presupuesto = 22719.0, 26000.0, 11000.0
-                    fv_total = -3281.0  # 26000 - 3281 = 22719
+                    fv_total = -3281.0
                 elif num_equipo == 5:
-                    # PERFIL: Buena (Equilibrada)
                     neta_total, bruta_total, presupuesto = 19323.0, 20000.0, 10000.0
-                    fv_total = -677.0  # 20000 - 677 = 19323
+                    fv_total = -677.0
 
                 rep_inicial = Reporte(
                     equipo_id=equipo.id,
@@ -298,20 +293,17 @@ class ProfesorService:
                     contribucion_bruta_total=bruta_total,
                     contribucion_neta_total=neta_total,
                     presupuesto_proximo_periodo=presupuesto,
-                    
-                    # GUARDAMOS LOS NUEVOS CAMPOS CALCULADOS
                     investigacion_total=id_total,
                     fuerza_ventas_total=fv_total,
                     investigacion_mercado=inv_mercado,
                     costo_util_excepcional=costo_exc,
-                    
                     inflacion_aplicada=ind.inflacion_anual,
                     crecimiento_pnb=ind.crecimiento_pib,
                     tipo_cambio=ind.tipo_cambio_usd,
                 )
                 session.add(rep_inicial)
                 session.commit()
-                session.refresh(rep_inicial)
+                session.refresh(rep_inicial) # 👈 IMPORTANTE: Refrescar
 
                 # Crear reporte_marca inicial con datos financieros exactos
                 for idx, marca in enumerate(marcas_creadas):
@@ -394,49 +386,42 @@ class ProfesorService:
                     )
                     session.add(rm)
                 session.commit()
-            return {"ok": True, "industria_id": ind.id}
 
-        except Exception as e:
-            session.rollback()
-            return {"error": str(e)}
-        finally:
-            session.close()
-                 # ============================================================
+                # ============================================================
                 # CREAR DATOS DE MARKETING (Distribuidores y Fuerza de Ventas)
                 # ============================================================
                 # 1. Asignar Porción de Mercado según el equipo
-            if num_equipo == 1:
+                if num_equipo == 1:
                     porciones = [0.11, 0.04]
                     fv_canales = [5, 42, 18]
                     dist_canales = [504, 16115, 1440]
-            elif num_equipo == 2:
+                elif num_equipo == 2:
                     porciones = [0.08, 0.06]
-                    fv_canales = [10, 20, 5]      # Mucho vendedor en Canal 1
+                    fv_canales = [10, 20, 5]
                     dist_canales = [400, 12000, 1000]
-            elif num_equipo == 3:
+                elif num_equipo == 3:
                     porciones = [0.15, 0.10]
-                    fv_canales = [50, 100, 20]    # Fuerza de ventas agresiva
+                    fv_canales = [50, 100, 20]
                     dist_canales = [600, 20000, 2000]
-            elif num_equipo == 4:
+                elif num_equipo == 4:
                     porciones = [0.20, 0.15]
-                    fv_canales = [10, 15, 2]      # Muy eficiente (pocos vendedores)
+                    fv_canales = [10, 15, 2]
                     dist_canales = [800, 25000, 3000]
-            elif num_equipo == 5:
+                elif num_equipo == 5:
                     porciones = [0.05, 0.02]
-                    fv_canales = [2, 5, 1]        # Casi sin fuerza de ventas
+                    fv_canales = [2, 5, 1]
                     dist_canales = [200, 5000, 500]
 
                 # Actualizar ReporteMarca con la porción de mercado real
-            for idx_rm, rm in enumerate(rep_inicial.marcas):
+                for idx_rm, rm in enumerate(rep_inicial.marcas):
                     if idx_rm < len(porciones):
-                        rm.porcion_mercado = porciones[idx_rm] * 100 # Se guarda en porcentaje
+                        rm.porcion_mercado = porciones[idx_rm] * 100
 
-                # Obtener los canales de la industria (Canal 1, 2 y 3)
-            canales = session.query(Canal).filter_by(industria_id=ind.id).order_by(Canal.numero).all()
+                # Obtener los canales de la industria
+                canales = session.query(Canal).filter_by(industria_id=ind.id).order_by(Canal.numero).all()
 
-                # Guardar Distribuidores (ReporteMarcaCanal) y Fuerza de Ventas
-            for idx_rm, rm in enumerate(rep_inicial.marcas):
-                    # Guardar distribuidores en el reporte
+                # Guardar Distribuidores y Fuerza de Ventas
+                for idx_rm, rm in enumerate(rep_inicial.marcas):
                     for idx_canal, canal in enumerate(canales):
                         if idx_canal < len(dist_canales):
                             rm_canal = ReporteMarcaCanal(
@@ -444,21 +429,28 @@ class ProfesorService:
                                 canal_id=canal.id,
                                 detallistas=dist_canales[idx_canal],
                                 vendedores=fv_canales[idx_canal],
-                                ventas_unidades=rm.unidades_vendidas / 3 # Dividido entre los 3 canales
+                                ventas_unidades=rm.unidades_vendidas / 3
                             )
                             session.add(rm_canal)
 
-                            # Guardar la fuerza de ventas para esta marca/canal
+                            # Guardar la fuerza de ventas
                             fuerza = FuerzaVentas(
-                                marca_id=marca.id, # La marca actual
+                                marca_id=marcas_creadas[idx_rm].id, # Usar el ID de la marca correcta
                                 canal_id=canal.id,
                                 vendedores=fv_canales[idx_canal],
                                 detallistas=dist_canales[idx_canal],
                                 anio=0
                             )
                             session.add(fuerza)
+                session.commit()
 
-            session.commit()
+            return {"ok": True, "industria_id": ind.id}
+
+        except Exception as e:
+            session.rollback()
+            return {"error": str(e)}
+        finally:
+            session.close()
 
     @staticmethod
     def eliminar_industria(industria_id):
@@ -630,7 +622,6 @@ class ProfesorService:
                         resultado["errores"].append(f"Fila {i}: equipo {equipo_num} no existe")
                         continue
 
-                    # Username desde email
                     username_base = email.split("@")[0].lower().replace(".", "_").replace("-", "_")
                     username = username_base
                     contador = 1
