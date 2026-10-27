@@ -204,11 +204,46 @@ def contrasenas():
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
 
+    # Traemos la lista de alumnos de este profesor
+    alumnos = ProfesorService.listar_alumnos_por_profesor(_profesor_id())
+
     return render_template(
         "profesor/contrasenas.html",
-        nombre=session.get("nombre")
+        nombre=session.get("nombre"),
+        alumnos=alumnos  # 👈 Enviamos los alumnos al HTML
     )
+
+@profesor_bp.route("/alumnos/<int:alumno_id>/eliminar", methods=["POST"])
+def eliminar_alumno(alumno_id):
+    if not _verificar_profesor():
+        return jsonify({"error": "No autorizado"}), 403
+
+    resultado = ProfesorService.eliminar_alumno(alumno_id)
     
+    if "error" in resultado:
+        flash(resultado["error"], "error")
+    else:
+        flash("Alumno desvinculado del equipo correctamente.", "exito")
+        
+    return redirect(url_for("profesor.contrasenas"))
+
+@profesor_bp.route("/alumnos/<int:alumno_id>/editar", methods=["POST"])
+def editar_alumno(alumno_id):
+    if not _verificar_profesor():
+        return jsonify({"error": "No autorizado"}), 403
+
+    nombre = request.form.get("nombre", "").strip()
+    email = request.form.get("email", "").strip()
+
+    resultado = ProfesorService.actualizar_alumno(alumno_id, nombre, email)
+    
+    if "error" in resultado:
+        flash(resultado["error"], "error")
+    else:
+        flash("Datos del alumno actualizados.", "exito")
+        
+    return redirect(url_for("profesor.contrasenas"))
+
 @profesor_bp.route("/simulaciones/<int:industria_id>/procesar", methods=["POST"])
 def procesar_ronda(industria_id):
     if not _verificar_profesor():

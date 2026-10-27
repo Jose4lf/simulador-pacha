@@ -1,124 +1,307 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>PACHA - Administrar Contraseñas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-</head>
-<body class="profesor-body">
-
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/profesor.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="profesor-body">
     <header class="header">
-        <div class="header-izq">
-            <span class="logo-icono">⛰️</span>
-            <span class="logo-texto">PACHA</span>
+      <div class="header-izq">
+        <span class="logo-icono">⛰️</span>
+        <span class="logo-texto">PACHA</span>
+      </div>
+      <div class="header-der">
+        <div class="header-idioma">
+          <span>🇧🇴</span><span>Español</span><span class="flecha">▾</span>
         </div>
-        <div class="header-der">
-            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
-            <div class="header-usuario">
-                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
-                <div class="datos">
-                    <div class="nombre">{{ nombre }}</div>
-                    <div class="rol">Profesor</div>
-                </div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        <div class="header-usuario">
+          <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+          <div class="datos">
+            <div class="nombre">{{ nombre }}</div>
+            <div class="rol">Profesor</div>
+          </div>
         </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+      </div>
     </header>
 
     <div class="contenedor">
-        <aside class="sidebar">
-            <nav class="sidebar-nav">
-                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
-                <div class="sidebar-item sidebar-item-padre" onclick="toggleSubmenu('sub-simuladores')">
-                    <span class="sidebar-icon">📊</span>
-                    <span class="sidebar-label">Simuladores</span>
-                    <span class="sidebar-arrow">▾</span>
-                </div>
-                <div class="sidebar-submenu" id="sub-simuladores">
-                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
-                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem">▶️ Mis simulaciones</a>
-                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem">➕ Nueva simulación</a>
-                </div>
-                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item activo">
-                    <span class="sidebar-icon">🔐</span>
-                    <span class="sidebar-label">Administrar Contraseña</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
-        </aside>
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"
+            ><span class="sidebar-icon">🏠</span
+            ><span class="sidebar-label">Inicio</span></a
+          >
+          <div
+            class="sidebar-item sidebar-item-padre"
+            onclick="toggleSubmenu('sub-simuladores')"
+          >
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Simuladores</span>
+            <span class="sidebar-arrow">▾</span>
+          </div>
+          <div class="sidebar-submenu" id="sub-simuladores">
+            <a
+              href="{{ url_for('profesor.simuladores') }}"
+              class="sidebar-subitem"
+              >📋 Lista completa</a
+            >
+            <a
+              href="{{ url_for('profesor.simulaciones') }}"
+              class="sidebar-subitem"
+              >▶️ Mis simulaciones</a
+            >
+            <a
+              href="{{ url_for('profesor.nueva_simulacion') }}"
+              class="sidebar-subitem"
+              >➕ Nueva simulación</a
+            >
+          </div>
+          <a
+            href="{{ url_for('profesor.contrasenas') }}"
+            class="sidebar-item activo"
+          >
+            <span class="sidebar-icon">🔐</span>
+            <span class="sidebar-label">Administrar Contraseña</span>
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <p>© PACHA 2026</p>
+          <p>v1.0</p>
+        </div>
+      </aside>
 
-        <main class="main-contenido">
+      <main class="main-contenido">
+        <div class="page-header">
+          <h1 class="page-title">Administrar Contraseñas</h1>
+          <p class="page-subtitle">
+            Genera y consulta las credenciales de los equipos
+          </p>
+        </div>
 
-            <div class="page-header">
-                <h1 class="page-title">Administrar Contraseñas</h1>
-                <p class="page-subtitle">Genera y consulta las credenciales de los equipos</p>
-            </div>
+        <section class="card">
+          <div class="sim-card-etiqueta" style="margin-bottom: 15px">
+            🔑 INFORMACIÓN
+          </div>
+          <div class="aviso-info">
+            <strong>💡 Cómo funciona</strong>
+            <p>
+              Las contraseñas están encriptadas en la base de datos. Para poder
+              entregarlas a los equipos, puedes
+              <strong>resetearlas todas</strong> a un valor conocido.
+            </p>
+            <ul>
+              <li>Contraseña por defecto sugerida: <code>pacha2026</code></li>
+              <li>Los alumnos podrán cambiarla después</li>
+              <li>
+                Los equipos deben usarla para acceder al panel del alumno
+                (próximamente)
+              </li>
+            </ul>
+          </div>
+        </section>
 
-            <section class="card">
-                <div class="sim-card-etiqueta" style="margin-bottom:15px;">
-                    🔑 INFORMACIÓN
-                </div>
-                <div class="aviso-info">
-                    <strong>💡 Cómo funciona</strong>
-                    <p>Las contraseñas están encriptadas en la base de datos. Para poder entregarlas a los equipos, puedes <strong>resetearlas todas</strong> a un valor conocido.</p>
-                    <ul>
-                        <li>Contraseña por defecto sugerida: <code>pacha2026</code></li>
-                        <li>Los alumnos podrán cambiarla después</li>
-                        <li>Los equipos deben usarla para acceder al panel del alumno (próximamente)</li>
-                    </ul>
-                </div>
-            </section>
+        <section class="card" style="margin-top: 20px">
+          <div class="sim-card-etiqueta" style="margin-bottom: 15px">
+            ⚡ ACCIONES GLOBALES
+          </div>
 
-            <section class="card" style="margin-top:20px;">
-                <div class="sim-card-etiqueta" style="margin-bottom:15px;">
-                    ⚡ ACCIONES GLOBALES
-                </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap">
+            <form
+              method="POST"
+              action="#"
+              onsubmit="
+                return confirm(
+                  '¿Resetear TODAS las contraseñas de alumnos a pacha2026?',
+                );
+              "
+            >
+              <button type="submit" class="btn-primario">
+                🔄 RESETEAR TODAS A pacha2026
+              </button>
+            </form>
+            <a href="#" class="btn-secundario">📥 EXPORTAR CREDENCIALES</a>
+          </div>
+        </section>
 
-                <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                    <form method="POST" action="#" onsubmit="return confirm('¿Resetear TODAS las contraseñas de alumnos a pacha2026?')">
-                        <button type="submit" class="btn-primario">🔄 RESETEAR TODAS A pacha2026</button>
+        <section class="card" style="margin-top: 20px">
+          <div class="sim-card-etiqueta" style="margin-bottom: 15px">
+            👥 LISTA DE ALUMNOS
+          </div>
+
+          <!-- LISTA DE ALUMNOS -->
+          <div
+            class="tarjeta-contenedor"
+            style="
+              padding: 20px;
+              background: white;
+              border-radius: 12px;
+              margin-top: 20px;
+            "
+          >
+            <h3 style="margin-bottom: 15px; color: #514653">
+              👨‍🎓 Lista de Alumnos Registrados
+            </h3>
+
+            {% if alumnos %}
+            <table
+              style="width: 100%; border-collapse: collapse; text-align: left"
+            >
+              <thead>
+                <tr
+                  style="background: #f8f9fa; border-bottom: 2px solid #e9ecef"
+                >
+                  <th style="padding: 12px">Nombre</th>
+                  <th style="padding: 12px">Usuario / Email</th>
+                  <th style="padding: 12px">Industria (Simulación)</th>
+                  <th style="padding: 12px">Equipo</th>
+                  <th style="padding: 12px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for alumno in alumnos %}
+                <tr style="border-bottom: 1px solid #e9ecef">
+                  <td style="padding: 12px">
+                    <strong>{{ alumno.nombre }}</strong>
+                    {% if alumno.es_representante %}
+                    <span
+                      style="
+                        background: #ffd700;
+                        font-size: 10px;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        margin-left: 5px;
+                      "
+                      >Rep</span
+                    >
+                    {% endif %}
+                  </td>
+                  <td style="padding: 12px">
+                    {{ alumno.username }}<br />
+                    <small style="color: #888"
+                      >{{ alumno.email or 'Sin correo' }}</small
+                    >
+                  </td>
+                  <td style="padding: 12px">{{ alumno.industria_nombre }}</td>
+                  <td style="padding: 12px">
+                    Equipo {{ alumno.equipo_numero }}
+                  </td>
+                  <td style="padding: 12px">
+                    <!-- Botón Editar (Abre un prompt rápido) -->
+                    <button
+                      onclick="editarAlumno('{{ alumno.id }}', '{{ alumno.nombre }}', '{{ alumno.email }}')"
+                      style="
+                        background: #b9ddf4;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        margin-right: 5px;
+                      "
+                    >
+                      ✏️ Editar
+                    </button>
+
+                    <!-- Botón Eliminar -->
+                    <form
+                      action="{{ url_for('profesor.eliminar_alumno', alumno_id=alumno.id) }}"
+                      method="POST"
+                      style="display: inline"
+                      onsubmit="
+                        return confirm(
+                          '¿Estás seguro de desvincular a este alumno de su equipo?',
+                        );
+                      "
+                    >
+                      <button
+                        type="submit"
+                        style="
+                          background: #f6c6d0;
+                          border: none;
+                          padding: 6px 12px;
+                          border-radius: 6px;
+                          cursor: pointer;
+                        "
+                      >
+                        🗑️ Eliminar
+                      </button>
                     </form>
-                    <a href="#" class="btn-secundario">📥 EXPORTAR CREDENCIALES</a>
-                </div>
-            </section>
-
-            <section class="card" style="margin-top:20px;">
-                <div class="sim-card-etiqueta" style="margin-bottom:15px;">
-                    👥 LISTA DE ALUMNOS
-                </div>
-
-                <div class="vacio">
-                    <div class="vacio-icono">🔐</div>
-                    <h3 class="vacio-titulo">Sin alumnos registrados</h3>
-                    <p class="vacio-texto">Los alumnos aparecerán aquí cuando se registren en tus simulaciones.</p>
-                </div>
-            </section>
-
-            <div style="margin-top:20px;">
-                <a href="{{ url_for('profesor.panel') }}" class="btn-secundario">← Volver al Inicio</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="vacio" style="text-align: center; padding: 40px 20px">
+              <div class="vacio-icono" style="font-size: 50px">🔒</div>
+              <h3 class="vacio-titulo" style="color: #514653">
+                Sin alumnos registrados
+              </h3>
+              <p class="vacio-texto" style="color: #888">
+                Los alumnos aparecerán aquí cuando los importes en tus
+                simulaciones.
+              </p>
             </div>
+            {% endif %}
+          </div>
 
-        </main>
+          <!-- Formulario oculto para editar -->
+          <form id="form-editar-alumno" method="POST" style="display: none">
+            <input type="hidden" name="nombre" id="edit-nombre" />
+            <input type="hidden" name="email" id="edit-email" />
+          </form>
+
+          <script>
+            function editarAlumno(id, nombreActual, emailActual) {
+              // Pedimos los nuevos datos con prompt (puedes cambiarlo por un modal después)
+              let nuevoNombre = prompt("Editar Nombre:", nombreActual);
+              if (nuevoNombre === null) return; // Si cancela, no hace nada
+
+              let nuevoEmail = prompt("Editar Email:", emailActual);
+              if (nuevoEmail === null) return;
+
+              // Llenamos el formulario oculto y lo enviamos
+              const form = document.getElementById("form-editar-alumno");
+              form.action = `/profesor/alumnos/${id}/editar`; // Ruta de Flask
+              document.getElementById("edit-nombre").value = nuevoNombre;
+              document.getElementById("edit-email").value = nuevoEmail;
+              form.submit();
+            }
+          </script>
+        </section>
+
+        <div style="margin-top: 20px">
+          <a href="{{ url_for('profesor.panel') }}" class="btn-secundario"
+            >← Volver al Inicio</a
+          >
+        </div>
+      </main>
     </div>
 
     <script>
-        function toggleSubmenu(id) {
-            const submenu = document.getElementById(id);
-            const padre = submenu.previousElementSibling;
-            const arrow = padre.querySelector('.sidebar-arrow');
-            if (submenu.classList.contains('abierto')) {
-                submenu.classList.remove('abierto');
-                padre.classList.remove('abierto');
-                if (arrow) arrow.textContent = '▾';
-            } else {
-                submenu.classList.add('abierto');
-                padre.classList.add('abierto');
-                if (arrow) arrow.textContent = '▴';
-            }
+      function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        const padre = submenu.previousElementSibling;
+        const arrow = padre.querySelector(".sidebar-arrow");
+        if (submenu.classList.contains("abierto")) {
+          submenu.classList.remove("abierto");
+          padre.classList.remove("abierto");
+          if (arrow) arrow.textContent = "▾";
+        } else {
+          submenu.classList.add("abierto");
+          padre.classList.add("abierto");
+          if (arrow) arrow.textContent = "▴";
         }
+      }
     </script>
     <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
-
-</body>
+  </body>
 </html>

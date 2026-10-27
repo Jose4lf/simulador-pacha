@@ -714,3 +714,71 @@ class ProfesorService:
             return output.getvalue()
         finally:
             session.close()
+        # ============================================================
+    # GESTIÓN DE ALUMNOS
+    # ============================================================
+    @staticmethod
+    def listar_alumnos_por_profesor(profesor_id):
+        session = get_session()
+        try:
+            # Hacemos un JOIN para traer al alumno, su equipo y la industria del equipo
+            alumnos = session.query(Usuario, Equipo, Industria).\
+                join(Equipo, Usuario.equipo_id == Equipo.id).\
+                join(Industria, Equipo.industria_id == Industria.id).\
+                filter(Industria.profesor_id == profesor_id).\
+                filter(Usuario.rol == 'alumno').all()
+
+            resultado = []
+            for usuario, equipo, industria in alumnos:
+                resultado.append({
+                    "id": usuario.id,
+                    "nombre": usuario.nombre,
+                    "username": usuario.username,
+                    "email": usuario.email,
+                    "industria_id": industria.id,
+                    "industria_nombre": industria.nombre,
+                    "equipo_id": equipo.id,
+                    "equipo_numero": equipo.numero,
+                    "es_representante": usuario.es_representante
+                })
+            return resultado
+        finally:
+            session.close()
+
+    @staticmethod
+    def eliminar_alumno(alumno_id):
+        from werkzeug.security import generate_password_hash
+        session = get_session()
+        try:
+            alumno = session.query(Usuario).filter_by(id=alumno_id, rol='alumno').first()
+            if not alumno:
+                return {"error": "Alumno no encontrado"}
+            
+            # En lugar de borrarlo de la BD (por si tiene reportes), lo desvinculamos de su equipo
+            alumno.equipo_id = None
+            alumno.activo = False
+            session.commit()
+            return {"ok": True}
+        except Exception as e:
+            session.rollback()
+            return {"error": str(e)}
+        finally:
+            session.close()
+
+    @staticmethod
+    def actualizar_alumno(alumno_id, nombre, email):
+        session = get_session()
+        try:
+            alumno = session.query(Usuario).filter_by(id=alumno_id, rol='alumno').first()
+            if not alumno:
+                return {"error": "Alumno no encontrado"}
+            
+            alumno.nombre = nombre
+            alumno.email = email
+            session.commit()
+            return {"ok": True}
+        except Exception as e:
+            session.rollback()
+            return {"error": str(e)}
+        finally:
+            session.close()
