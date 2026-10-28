@@ -64,6 +64,8 @@ class Usuario(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
+    debe_cambiar_password = Column(Boolean, default=False, nullable=False)
+    password_actualizada = Column(DateTime, nullable=True)
     rol = Column(String(20), nullable=False)
     nombre = Column(String(100))
     email = Column(String(120))
@@ -193,6 +195,10 @@ class Marca(Base):
     activa = Column(Boolean, default=True)
     anio_lanzamiento = Column(Integer, default=0)
     calidad_actual = Column(Float, default=50)
+    # Costo unitario de transferencia (Bs por unidad). 0 = usar el valor por
+    # defecto del motor (55 % del precio). Se actualiza al aplicar un proyecto
+    # de I&D sobre el atributo 6.
+    costo_unitario = Column(Float, default=0, nullable=False)
 
     # Valores actuales (última decisión aplicada)
     precio_actual = Column(Float, default=300)
@@ -275,6 +281,10 @@ class Decision(Base):
     equipo_id = Column(Integer, ForeignKey('equipos.id', ondelete="CASCADE"), nullable=False)
     anio = Column(Integer, nullable=False)
     enviada = Column(DateTime, default=datetime.now)
+    # borrador: se conserva y se puede editar; enviada: única decisión efectiva
+    # del equipo para el período. El motor solo procesa las enviadas.
+    estado = Column(String(20), default="enviada", nullable=False)
+    actualizada = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     equipo = relationship("Equipo", back_populates="decisiones")
     marcas = relationship("DecisionMarca", back_populates="decision", cascade="all, delete-orphan")
@@ -346,13 +356,19 @@ class ProyectoID(Base):
     nombre = Column(String(50), nullable=False)
     anio_inicio = Column(Integer, nullable=False)
     anio_aprobacion = Column(Integer, nullable=True)
+    anio_aplicacion = Column(Integer, nullable=True)
     estado = Column(String(20), default="en_desarrollo")
     gastos = Column(Float, default=0)
+    # Valores calculados al registrar el proyecto (miles de Bs y Bs).
+    costo_estandar = Column(Float, default=0)
+    presupuesto_normal = Column(Float, default=0)
+    probabilidad_calculada = Column(Float, default=0)
     marca_destino_id = Column(Integer, ForeignKey('marcas.id', ondelete="SET NULL"), nullable=True)
     es_nueva_marca = Column(Boolean, default=False)
 
     equipo = relationship("Equipo", back_populates="proyectos")
     atributos = relationship("ProyectoAtributo", back_populates="proyecto", cascade="all, delete-orphan")
+    resultados = relationship("ProyectoResultado", back_populates="proyecto", cascade="all, delete-orphan")
 
 
 class ProyectoAtributo(Base):
@@ -368,6 +384,29 @@ class ProyectoAtributo(Base):
     valor_objetivo = Column(Float, default=0)
 
     proyecto = relationship("ProyectoID", back_populates="atributos")
+
+
+class ProyectoResultado(Base):
+    """Resultado de la evaluación anual de un proyecto de I&D."""
+    __tablename__ = 'proyecto_resultados'
+    __table_args__ = (
+        Index('ix_proyecto_resultados_proyecto', 'proyecto_id'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    proyecto_id = Column(Integer, ForeignKey('proyectos.id', ondelete="CASCADE"), nullable=False)
+    anio = Column(Integer, nullable=False)
+    resultado = Column(String(20), nullable=False)  # aprobado | fallido
+    probabilidad = Column(Float, default=0)
+    presupuesto_normal = Column(Float, default=0)
+    presupuesto_asignado = Column(Float, default=0)
+    atributo_fallido = Column(Integer, nullable=True)
+    presupuesto_adicional = Column(Float, default=0)
+    costo_estandar = Column(Float, default=0)
+    costo_minimo = Column(Float, nullable=True)
+    detalle = Column(String(255), default="")
+
+    proyecto = relationship("ProyectoID", back_populates="resultados")
 
 
 # ============================================================
@@ -494,6 +533,7 @@ class CompraEstudio(Base):
     equipo_id = Column(Integer, ForeignKey('equipos.id', ondelete="CASCADE"), nullable=False)
     estudio_id = Column(Integer, ForeignKey('estudios_mercado.id', ondelete="CASCADE"), nullable=False)
     anio = Column(Integer, nullable=False)
+    costo = Column(Float, default=0, nullable=False)
     comprado = Column(DateTime, default=datetime.now)
 
     awareness = relationship("EstudioAwareness", back_populates="compra", cascade="all, delete-orphan")
@@ -505,6 +545,7 @@ class CompraEstudio(Base):
     pronosticos = relationship("EstudioPronostico", back_populates="compra", cascade="all, delete-orphan")
     publicidad_comp = relationship("EstudioPublicidadCompetencia", back_populates="compra", cascade="all, delete-orphan")
     fuerza_ventas_comp = relationship("EstudioFuerzaVentasCompetencia", back_populates="compra", cascade="all, delete-orphan")
+    resultados = relationship("EstudioResultado", back_populates="compra", cascade="all, delete-orphan")
 
 
 class EstudioAwareness(Base):
@@ -640,6 +681,29 @@ class EstudioFuerzaVentasCompetencia(Base):
     vendedores_estimados = Column(Integer, default=0)
 
     compra = relationship("CompraEstudio", back_populates="fuerza_ventas_comp")
+
+
+class EstudioResultado(Base):
+    """Resultados genéricos de estudio que no tienen tabla específica.
+
+    Cubre hábitos de compra, ideales de segmento y los experimentos 14/15.
+    Cada fila es una métrica con su categoría y entidad para poder mostrarla
+    agrupada sin añadir una tabla por estudio.
+    """
+    __tablename__ = 'estudio_resultados'
+    __table_args__ = (
+        Index('ix_estudio_resultados_compra', 'compra_id'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    compra_id = Column(Integer, ForeignKey('compras_estudios.id', ondelete="CASCADE"), nullable=False)
+    categoria = Column(String(40), nullable=False)
+    entidad = Column(String(60), nullable=False, default="")
+    metrica = Column(String(40), nullable=False)
+    valor = Column(Float, default=0)
+    texto = Column(String(120), nullable=True)
+
+    compra = relationship("CompraEstudio", back_populates="resultados")
 
 
 # ============================================================

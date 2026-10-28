@@ -62,7 +62,6 @@ def crear_profesor():
         return jsonify({"error": "No autorizado"}), 403
 
     username = request.form.get("username", "").strip()
-    password = request.form.get("password", "").strip()
     nombre_completo = request.form.get("nombre", "").strip()
     email = request.form.get("email", "").strip()
     activo = request.form.get("activo") == "on"
@@ -70,8 +69,8 @@ def crear_profesor():
 
     simuladores_ids = [int(x) for x in request.form.getlist("simuladores") if x.isdigit()]
 
-    if not username or not password or not nombre_completo:
-        flash("Usuario, contraseña y nombre son obligatorios", "error")
+    if not username or not nombre_completo:
+        flash("Usuario y nombre son obligatorios", "error")
         return redirect(url_for("decano.agregar_profesor"))
 
     if not simuladores_ids:
@@ -79,7 +78,7 @@ def crear_profesor():
         return redirect(url_for("decano.agregar_profesor"))
 
     resultado = DecanoService.crear_profesor(
-        username, password, nombre_completo, email,
+        username, None, nombre_completo, email,
         activo, bloqueado, simuladores_ids
     )
 
@@ -87,8 +86,19 @@ def crear_profesor():
         flash(resultado["error"], "error")
         return redirect(url_for("decano.agregar_profesor"))
 
-    flash(f"Profesor '{username}' creado exitosamente", "exito")
-    return redirect(url_for("decano.profesores"))
+    return render_template(
+        "auth/credenciales_temporales.html",
+        titulo="Profesor creado",
+        subtitulo="Entrega esta contraseña temporal al docente. Deberá cambiarla al ingresar.",
+        credenciales=[{
+            "usuario": username,
+            "nombre": nombre_completo,
+            "password": resultado["password_temporal"],
+            "detalle": "Profesor",
+        }],
+        volver_url=url_for("decano.profesores"),
+        volver_texto="Volver a profesores",
+    )
 
 
 @decano_bp.route("/profesores/editar")
@@ -245,6 +255,10 @@ def eliminar_usuario(usuario_id):
     if not _verificar_decano():
         return jsonify({"error": "No autorizado"}), 403
 
+    if usuario_id == session.get("usuario_id"):
+        flash("No puedes desactivar tu propia cuenta.", "error")
+        return redirect(url_for("decano.contrasenas"))
+
     resultado = DecanoService.eliminar_usuario(usuario_id)
     
     if "error" in resultado:
@@ -259,12 +273,15 @@ def resetear_password_usuario(usuario_id):
     if not _verificar_decano():
         return jsonify({"error": "No autorizado"}), 403
 
+    if usuario_id == session.get("usuario_id"):
+        return jsonify({"error": "Usa la opción de cambiar contraseña para tu propia cuenta."}), 400
+
     resultado = DecanoService.resetear_password_usuario(usuario_id)
     
     if "error" in resultado:
         return jsonify(resultado), 400
         
-    return jsonify(resultado) # Devolvemos éxito y la nueva contraseña
+    return jsonify(resultado) # Devuelve la nueva contraseña temporal
 
 
 @decano_bp.route("/contrasenas/resetear/<int:usuario_id>", methods=["POST"])
@@ -272,15 +289,30 @@ def resetear_password(usuario_id):
     if not _verificar_decano():
         return jsonify({"error": "No autorizado"}), 403
 
-    nueva = request.form.get("nueva_password", "pacha2026").strip() or "pacha2026"
+    if usuario_id == session.get("usuario_id"):
+        flash("Usa la opción de cambiar contraseña para tu propia cuenta.", "error")
+        return redirect(url_for("decano.contrasenas"))
+
+    nueva = request.form.get("nueva_password", "").strip() or None
     resultado = DecanoService.resetear_password_usuario(usuario_id, nueva)
 
     if "error" in resultado:
         flash(resultado["error"], "error")
-    else:
-        flash(f"Contraseña de '{resultado['username']}' reseteada a: {resultado['password']}", "exito")
+        return redirect(url_for("decano.contrasenas"))
 
-    return redirect(url_for("decano.contrasenas"))
+    return render_template(
+        "auth/credenciales_temporales.html",
+        titulo="Contraseña temporal generada",
+        subtitulo="Entrega esta clave a la persona correspondiente.",
+        credenciales=[{
+            "usuario": resultado["username"],
+            "nombre": resultado.get("nombre"),
+            "password": resultado["nueva_pass"],
+            "detalle": "Cambio obligatorio al ingresar",
+        }],
+        volver_url=url_for("decano.contrasenas"),
+        volver_texto="Volver a contraseñas",
+    )
 
 
 # ============================================================

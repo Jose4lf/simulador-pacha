@@ -1,0 +1,14 @@
+Migraciones de PACHA (Alembic, SQLAlchemy puro).
+
+Comandos (desde la raíz del proyecto, con el venv activo):
+
+    .venv/Scripts/alembic.exe current
+    .venv/Scripts/alembic.exe revision --autogenerate -m "descripcion"
+    .venv/Scripts/alembic.exe upgrade head
+    .venv/Scripts/alembic.exe downgrade -1
+
+Reglas:
+- Revisar SIEMPRE el archivo generado antes de aplicarlo.
+- Probar en una copia de la base de datos antes de tocar PostgreSQL.
+- La migración base no se ejecuta sobre la BD existente: se marca con
+  `alembic stamp head` porque el esquema ya estaba creado.

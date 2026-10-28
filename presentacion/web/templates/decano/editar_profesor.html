@@ -146,6 +146,7 @@
           class="form-profesor"
           id="form-editar"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
           <input
             type="hidden"
             name="accion"
@@ -190,11 +191,11 @@
               />
             </div>
             <div class="campo">
-              <label>Nueva Contraseña (dejar en blanco para no cambiar)</label>
+              <label>Nueva contraseña temporal (opcional)</label>
               <input
                 type="password"
                 name="nueva_password"
-                placeholder="••••••••"
+                placeholder="Dejar en blanco para no cambiar"
               />
             </div>
           </div>

@@ -1,0 +1,46 @@
+{% if db_info is defined and db_info.inicializada %}
+<div class="pacha-db-badge{% if db_info.es_fallback %} pacha-db-badge--warn{% endif %}"
+     title="{{ db_info.url }}"
+     role="status"
+     aria-live="polite">
+  <span class="pacha-db-dot" aria-hidden="true"></span>
+  BD: {{ db_info.motor }}{% if db_info.es_fallback %} · RESPALDO SQLITE{% endif %}
+</div>
+<style>
+  .pacha-db-badge {
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    z-index: 9999;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #cfe6d8;
+    color: #2f6b4f;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+  }
+  .pacha-db-badge--warn {
+    background: #fff7e6;
+    border-color: #f0c36d;
+    color: #8a5a00;
+  }
+  .pacha-db-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3aa76d;
+    flex: 0 0 auto;
+  }
+  .pacha-db-badge--warn .pacha-db-dot {
+    background: #e0a100;
+  }
+</style>
+{% endif %}

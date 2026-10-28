@@ -1,19 +1,21 @@
 """
-Resetea la contraseña del decano a una conocida.
-Ejecutar: python resetear_decano.py
+Genera una contraseña temporal nueva para la cuenta de decano.
+
+Uso:
+    PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe scripts/resetear_decano.py
+
+La contraseña se muestra una sola vez en la consola. No se escribe en logs
+ni en la base de datos en texto plano.
 """
-import sys
 import os
+import sys
+from datetime import datetime
 
-# Esto le dice a Python que suba un nivel desde 'scripts/' hasta la raíz del proyecto
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from werkzeug.security import generate_password_hash
 from infraestructura.database import inicializar_db, get_session
+from infraestructura.seguridad import generar_password_temporal, hashear_password
 from core.models import Usuario
-
-
-NUEVA_PASSWORD = "123"  # 👈 Contraseña exacta solicitada
 
 
 def resetear():
@@ -25,31 +27,35 @@ def resetear():
     session = get_session()
 
     try:
-        # Buscamos al usuario decano (por username 'admin' o rol 'decano')
-        decano = session.query(Usuario).filter(Usuario.username == "admin").first()
+        decano = session.query(Usuario).filter_by(rol="decano").order_by(Usuario.id).first()
+
+        password_temporal = generar_password_temporal()
 
         if not decano:
-            print("⚠️  No existe el usuario 'admin'. Creando...")
+            print("⚠️  No existe una cuenta de decano. Creando...")
             decano = Usuario(
-                username="admin", # Usuario para iniciar sesión
-                password_hash=generate_password_hash(NUEVA_PASSWORD),
-                rol="decano",     # Le ponemos el rol 'decano' para que el login lo reconozca
+                username="Admin",
+                password_hash=hashear_password(password_temporal),
+                debe_cambiar_password=True,
+                password_actualizada=datetime.now(),
+                rol="decano",
                 nombre="Decano (Administrador)",
+                activo=True,
             )
             session.add(decano)
             session.commit()
-            print(f"✅ Usuario admin creado con contraseña: {NUEVA_PASSWORD}")
+            print("✅ Usuario decano creado.")
         else:
-            decano.password_hash = generate_password_hash(NUEVA_PASSWORD)
-            # Por si acaso estaba con el rol 'admin' viejo, lo corregimos a 'decano'
-            if decano.rol == "admin":
-                decano.rol = "decano" 
+            decano.password_hash = hashear_password(password_temporal)
+            decano.debe_cambiar_password = True
+            decano.password_actualizada = datetime.now()
             session.commit()
-            print(f"✅ Contraseña del usuario admin reseteada a: {NUEVA_PASSWORD}")
+            print("✅ Contraseña del decano reseteada.")
 
         print("\n" + "=" * 60)
         print(f"  Usuario:    {decano.username}")
-        print(f"  Contraseña: {NUEVA_PASSWORD}")
+        print(f"  Contraseña: {password_temporal}")
+        print("  Cambio obligatorio en el primer inicio de sesión.")
         print("=" * 60 + "\n")
 
     except Exception as e:

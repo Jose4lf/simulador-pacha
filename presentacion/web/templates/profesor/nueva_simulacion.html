@@ -63,6 +63,7 @@
 
             <div class="card">
                 <form action="{{ url_for('profesor.crear_simulacion') }}" method="POST" class="form-profesor">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
 
                     <!-- Nombre de la industria -->
                    <div class="form-campo">

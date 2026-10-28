@@ -91,6 +91,7 @@
 
         <div class="form-container">
             <form method="POST" action="{{ url_for('profesor.editar_alumno', alumno_id=alumno.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <!-- Usuario (No editable) -->
@@ -115,9 +116,9 @@
 
                     <!-- Contraseña -->
                     <div class="form-group">
-                        <label>Nueva Contraseña</label>
+                        <label>Nueva contraseña temporal</label>
                         <input type="password" name="password" class="form-control" placeholder="Dejar en blanco para no cambiar">
-                        <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">Si se deja vacío, la contraseña actual no cambiará.</small>
+                        <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">Si se define, la persona deberá cambiarla en su próximo ingreso.</small>
                     </div>
                 </div>
 
@@ -162,7 +163,9 @@
             </form>
 
             <!-- Formulario oculto para eliminar (para no anidar forms) -->
-            <form id="form-eliminar" method="POST" action="{{ url_for('profesor.eliminar_alumno', alumno_id=alumno.id) }}" style="display: none;"></form>
+            <form id="form-eliminar" method="POST" action="{{ url_for('profesor.eliminar_alumno', alumno_id=alumno.id) }}" style="display: none;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            </form>
         </div>
     </div>
 

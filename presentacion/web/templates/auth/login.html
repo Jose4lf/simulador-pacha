@@ -101,11 +101,24 @@
           <div class="login-error">⚠️ {{ error }}</div>
           {% endif %}
 
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          {% for category, message in messages %}
+          <div class="login-error">{{ message }}</div>
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
+
           <form
             action="{{ url_for('auth.login') }}"
             method="POST"
             class="login-form"
           >
+            <input
+              type="hidden"
+              name="csrf_token"
+              value="{{ csrf_token }}"
+            />
             <input
               type="hidden"
               name="rol"
@@ -171,5 +184,6 @@
         }
     }
 </script>
+  {% include "partials/db_badge.html" %}
   </body>
 </html>

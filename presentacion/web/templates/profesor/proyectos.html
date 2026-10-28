@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Proyectos de I+D</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profesor.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="profesor-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'P' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Profesor</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('profesor.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <div class="sidebar-item sidebar-item-padre activo abierto" onclick="toggleSubmenu('sub-simuladores')">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Simuladores</span>
+                    <span class="sidebar-arrow">▴</span>
+                </div>
+                <div class="sidebar-submenu abierto" id="sub-simuladores">
+                    <a href="{{ url_for('profesor.simuladores') }}" class="sidebar-subitem">📋 Lista completa</a>
+                    <a href="{{ url_for('profesor.simulaciones') }}" class="sidebar-subitem activo">▶️ Mis simulaciones</a>
+                    <a href="{{ url_for('profesor.nueva_simulacion') }}" class="sidebar-subitem">➕ Nueva simulación</a>
+                </div>
+                <a href="{{ url_for('profesor.contrasenas') }}" class="sidebar-item"><span class="sidebar-icon">🔐</span><span class="sidebar-label">Administrar Contraseña</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+            <div class="page-header">
+                <h1 class="page-title">Proyectos de I+D</h1>
+                <p class="page-subtitle">
+                    {{ industria.nombre }} — Año {{ industria.anio_actual }}
+                </p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% for equipo in equipos %}
+            <section class="card" style="margin-bottom:20px;">
+                <div class="sim-card-etiqueta" style="margin-bottom:12px;">
+                    🏢 EQUIPO {{ equipo.numero }} — {{ equipo.nombre_empresa }}
+                </div>
+
+                {% if equipo.proyectos %}
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                        <thead>
+                            <tr style="background:#f6f0f3; text-align:left;">
+                                <th style="padding:8px;">Proyecto</th>
+                                <th style="padding:8px;">Año</th>
+                                <th style="padding:8px;">Destino</th>
+                                <th style="padding:8px;">Presupuesto<br>(miles Bs.)</th>
+                                <th style="padding:8px;">Estado</th>
+                                <th style="padding:8px;">Atributos (1-6)</th>
+                                <th style="padding:8px;">Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for proyecto in equipo.proyectos %}
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:8px; font-weight:600;">{{ proyecto.nombre }}</td>
+                                <td style="padding:8px;">{{ proyecto.anio_inicio }}</td>
+                                <td style="padding:8px;">{{ proyecto.marca_destino }}</td>
+                                <td style="padding:8px;">{{ "{:,.0f}".format(proyecto.presupuesto_miles) }}</td>
+                                <td style="padding:8px;">{{ proyecto.estado_etiqueta }}</td>
+                                <td style="padding:8px; font-size:12px; color:#666;">
+                                    {% for atributo in proyecto.atributos %}
+                                    {{ atributo.valor|round(1) if atributo.valor is not none else '—' }}{% if not loop.last %} · {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td style="padding:8px; font-size:12px;">
+                                    {% if proyecto.resultados %}
+                                        {% set ultimo = proyecto.resultados[0] %}
+                                        <strong>{{ ultimo.resultado|capitalize }}</strong>
+                                        ({{ (ultimo.probabilidad * 100)|round(0)|int }} %)
+                                        <br><span style="color:#888;">{{ ultimo.detalle }}</span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color:#999; font-size:14px;">Sin proyectos registrados.</p>
+                {% endif %}
+            </section>
+            {% endfor %}
+
+            <div style="margin-top:15px;">
+                <a href="{{ url_for('profesor.detalle_simulacion', industria_id=industria.id) }}"
+                   class="btn-secundario">← VOLVER A LA SIMULACIÓN</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            if (submenu) { submenu.classList.toggle('abierto'); }
+        }
+    </script>
+</body>
+</html>

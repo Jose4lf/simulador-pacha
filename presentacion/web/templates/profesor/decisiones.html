@@ -77,8 +77,10 @@
                             {{ eq.nombre_empresa }}
                         </div>
                         <div style="font-size:12px;">
-                            {% if eq.ya_decidio %}
-                            <span class="badge badge-ok">✅ Decidió</span>
+                            {% if eq.estado == 'borrador' %}
+                            <span class="badge" style="background:#F6E7A8; color:#7a5d00;">📝 Borrador</span>
+                            {% elif eq.ya_decidio %}
+                            <span class="badge badge-ok">✅ Enviada</span>
                             {% else %}
                             <span class="badge badge-error">⏳ Pendiente</span>
                             {% endif %}

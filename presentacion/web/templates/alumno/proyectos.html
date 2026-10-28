@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PACHA - Centro de I+D</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alumno.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body class="alumno-body">
+
+    <header class="header">
+        <div class="header-izq">
+            <span class="logo-icono">⛰️</span>
+            <span class="logo-texto">PACHA</span>
+        </div>
+        <div class="header-der">
+            <div class="header-idioma"><span>🇧🇴</span><span>Español</span><span class="flecha">▾</span></div>
+            <div class="header-usuario">
+                <div class="avatar">{{ nombre[0] if nombre else 'A' }}</div>
+                <div class="datos">
+                    <div class="nombre">{{ nombre }}</div>
+                    <div class="rol">Alumno</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <div class="contenedor">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('alumno.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
+                <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item"><span class="sidebar-icon">📝</span><span class="sidebar-label">Decisiones</span></a>
+                <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item"><span class="sidebar-icon">📊</span><span class="sidebar-label">Estudios</span></a>
+                <a href="{{ url_for('alumno.proyectos') }}" class="sidebar-item activo"><span class="sidebar-icon">🔬</span><span class="sidebar-label">I+D</span></a>
+                <a href="{{ url_for('alumno.manual') }}" class="sidebar-item"><span class="sidebar-icon">📖</span><span class="sidebar-label">Manual</span></a>
+            </nav>
+            <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
+        </aside>
+
+        <main class="main-contenido">
+            <h1 class="panel-titulo">Centro de I+D</h1>
+            <p class="panel-subtitulo">
+                Período {{ proyectos.industria.anio_actual }} — Equipo {{ proyectos.equipo.numero }}
+                ({{ proyectos.equipo.nombre_empresa }})
+            </p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <section class="panel-estado">
+                <div class="tarjeta-info">
+                    <div class="tarjeta-etiqueta">🔬 PROYECTOS ESTE AÑO</div>
+                    <div class="tarjeta-valor">{{ proyectos.proyectos_este_anio }} / {{ proyectos.limites.por_anio }}</div>
+                </div>
+                <div class="tarjeta-info">
+                    <div class="tarjeta-etiqueta">📁 NOMBRES USADOS</div>
+                    <div class="tarjeta-valor">{{ proyectos.nombres_usados }} / {{ proyectos.limites.por_simulacion }}</div>
+                </div>
+                <div class="tarjeta-info">
+                    <div class="tarjeta-etiqueta">🏷️ MARCAS ACTIVAS</div>
+                    <div class="tarjeta-valor">{{ proyectos.marcas|length }} / {{ proyectos.limites.marcas }}</div>
+                </div>
+                <div class="tarjeta-info">
+                    <div class="tarjeta-etiqueta">✅ APROBADOS PARA APLICAR</div>
+                    <div class="tarjeta-valor">{{ proyectos.aprobados|length }}</div>
+                </div>
+            </section>
+
+            {% if proyectos.anio_bloqueado %}
+            <div class="aviso-reglas">
+                <h4>🔒 I+D no disponible en este período</h4>
+                <p>
+                    {% if proyectos.industria.anio_actual == 0 %}
+                    El Año 0 es de diagnóstico: los proyectos de I+D empiezan en el Año 1.
+                    {% elif proyectos.industria.estado == 'finalizada' %}
+                    La simulación está finalizada.
+                    {% else %}
+                    El envío de decisiones está deshabilitado por el profesor.
+                    {% endif %}
+                </p>
+            </div>
+            {% else %}
+            <section class="seccion-reportes">
+                <h2 class="seccion-titulo"><span>🧪</span> Registrar un proyecto</h2>
+                <p style="font-size:14px; color:#777; margin-bottom:18px;">
+                    El proyecto toma un año. Al procesar la ronda, I+D dirá si fue aprobado.
+                    Si se aprueba, podrás aplicarlo a la marca en la hoja de decisiones del año siguiente.
+                </p>
+
+                <form action="{{ url_for('alumno.crear_proyecto') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+
+                    <table class="tabla-decisiones">
+                        <tbody>
+                            <tr>
+                                <th style="text-align:left;">NOMBRE DEL PROYECTO</th>
+                                <td>
+                                    <input type="text" name="nombre" maxlength="5"
+                                           placeholder="PSAMA" pattern="P[SV][A-Z]{3}"
+                                           title="P + S o V + tres letras mayúsculas"
+                                           style="text-transform:uppercase;" required>
+                                    <small style="color:#999;">P + S/V + 3 letras (ej. PSAMA)</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="text-align:left;">DESTINO</th>
+                                <td>
+                                    <select name="marca_id" id="destino-proyecto">
+                                        <option value="">— Marca nueva —</option>
+                                        {% for marca in proyectos.marcas %}
+                                        <option value="{{ marca.id }}">{{ marca.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" name="marca_nueva" id="nombre-marca-nueva"
+                                           maxlength="10" placeholder="SAMA"
+                                           style="text-transform:uppercase; margin-left:10px;">
+                                    <small style="color:#999;">Solo si el proyecto crea una marca nueva (4 a 10 letras).</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="text-align:left;">PRESUPUESTO<br><small>(Miles Bs.)</small></th>
+                                <td>
+                                    <input type="number" name="presupuesto" min="{{ proyectos.limites.presupuesto_min }}"
+                                           max="{{ proyectos.limites.presupuesto_max }}" step="10"
+                                           value="{{ proyectos.limites.presupuesto_min }}" required>
+                                    <small style="color:#999;">
+                                        Entre {{ proyectos.limites.presupuesto_min }} y
+                                        {{ proyectos.limites.presupuesto_max }} miles de Bs.
+                                    </small>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="margin:22px 0 10px; font-size:18px; color:#8b1c4e;">Atributos objetivo (Cuadro 2)</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="tabla-decisiones">
+                            <thead>
+                                <tr>
+                                    {% for rango in proyectos.rangos %}
+                                    <th>{{ rango.nombre }}<br><small>({{ rango.minimo|int }}–{{ rango.maximo|int }})</small></th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {% for rango in proyectos.rangos %}
+                                    <td>
+                                        <input type="number" name="atributo_{{ rango.numero }}"
+                                               min="{{ rango.minimo }}" max="{{ rango.maximo }}"
+                                               step="{{ 1 if rango.numero != 1 else 0.5 }}"
+                                               value="{{ rango.maximo if rango.numero == 4 else (rango.minimo if rango.numero in (1, 3) else 5) }}"
+                                               required>
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="aviso-reglas" style="margin-top:18px;">
+                        <h4>📐 Presupuesto normal por unidad de cambio (miles de Bs.)</h4>
+                        <table class="tabla-decisiones" style="max-width:640px;">
+                            <tbody>
+                                {% for tarifa in proyectos.tarifas %}
+                                <tr>
+                                    <td style="text-align:left;">{{ tarifa.numero }}. {{ tarifa.nombre }}</td>
+                                    <td>{{ tarifa.tarifa|int }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p style="font-size:13px; color:#777; margin-top:10px;">
+                            La probabilidad de aprobación es proporcional al presupuesto:
+                            si inviertes el 70 % del presupuesto normal, tienes 70 % de probabilidad.
+                            Si el costo objetivo supera en más del 30 % el costo estándar, el proyecto
+                            fracasa automáticamente.
+                        </p>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+                        <button type="submit" class="btn-primario">REGISTRAR PROYECTO</button>
+                    </div>
+                </form>
+            </section>
+            {% endif %}
+
+            <section class="seccion-reportes" style="margin-top:25px;">
+                <h2 class="seccion-titulo"><span>📁</span> Proyectos del equipo</h2>
+
+                {% if proyectos.proyectos %}
+                <div style="overflow-x:auto;">
+                    <table class="tabla-reporte" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>Proyecto</th>
+                                <th>Año</th>
+                                <th>Destino</th>
+                                <th>Presupuesto<br><small>(miles Bs.)</small></th>
+                                <th>Estado</th>
+                                <th>Resultado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for proyecto in proyectos.proyectos %}
+                            <tr>
+                                <td style="font-weight:600;">{{ proyecto.nombre }}</td>
+                                <td>{{ proyecto.anio_inicio }}</td>
+                                <td>{{ proyecto.marca_destino }}</td>
+                                <td>{{ "{:,.0f}".format(proyecto.presupuesto_miles) }}</td>
+                                <td>{{ proyecto.estado_etiqueta }}</td>
+                                <td style="font-size:13px;">
+                                    {% if proyecto.resultados %}
+                                        {% set ultimo = proyecto.resultados[0] %}
+                                        <strong>{{ ultimo.resultado|capitalize }}</strong>
+                                        ({{ (ultimo.probabilidad * 100)|round(0)|int }} %){{ ultimo.detalle }}
+                                    {% elif proyecto.estado == 'en_desarrollo' %}
+                                        Se evalúa al procesar la ronda.
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if proyecto.estado == 'en_desarrollo' and proyecto.anio_inicio == proyectos.industria.anio_actual %}
+                                    <form action="{{ url_for('alumno.cancelar_proyecto', proyecto_id=proyecto.id) }}" method="POST"
+                                          onsubmit="return confirm('¿Cancelar el proyecto {{ proyecto.nombre }}?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                                        <button type="submit" class="btn-secundario">Cancelar</button>
+                                    </form>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="vacio">
+                    <div class="vacio-icono">🧪</div>
+                    <h3 class="vacio-titulo">Sin proyectos registrados</h3>
+                    <p class="vacio-texto">Registra tu primer proyecto de I+D para mejorar una marca o lanzar una nueva.</p>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            var destino = document.getElementById("destino-proyecto");
+            var nueva = document.getElementById("nombre-marca-nueva");
+            if (!destino || !nueva) { return; }
+            function sincronizar() {
+                var esNueva = destino.value === "";
+                nueva.disabled = !esNueva;
+                nueva.required = esNueva;
+            }
+            destino.addEventListener("change", sincronizar);
+            sincronizar();
+        })();
+    </script>
+    <script src="{{ url_for('static', filename='js/toast_alumno.js') }}"></script>
+</body>
+</html>

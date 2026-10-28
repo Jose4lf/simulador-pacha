@@ -109,6 +109,7 @@
           method="POST"
           class="form-profesor"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
           <div class="form-row-2">
             <div class="campo">
               <label>Usuario del Profesor</label>
@@ -141,8 +142,11 @@
               />
             </div>
             <div class="campo">
-              <label>Contraseña Inicial</label>
-              <input type="password" name="password" required />
+              <label>Contraseña</label>
+              <p class="hint" style="margin: 8px 0 0">
+                Se generará una contraseña temporal aleatoria. Se mostrará una
+                sola vez al terminar y deberá cambiarse en el primer ingreso.
+              </p>
             </div>
           </div>
 

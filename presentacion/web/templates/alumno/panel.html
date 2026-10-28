@@ -47,6 +47,14 @@
             <span class="sidebar-icon">📝</span>
             <span class="sidebar-label">Decisiones</span>
           </a>
+          <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-label">Estudios</span>
+          </a>
+          <a href="{{ url_for('alumno.proyectos') }}" class="sidebar-item">
+            <span class="sidebar-icon">🔬</span>
+            <span class="sidebar-label">I+D</span>
+          </a>
           <a href="{{ url_for('alumno.manual') }}" class="sidebar-item">
             <span class="sidebar-icon">📖</span>
             <span class="sidebar-label">Manual</span>
@@ -494,5 +502,6 @@
         }
       })();
     </script>
+    {% include "partials/db_badge.html" %}
   </body>
 </html>

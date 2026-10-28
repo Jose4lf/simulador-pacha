@@ -1,9 +1,13 @@
 """
 Servicio del Decano - PACHA (esquema normalizado)
 """
-from werkzeug.security import generate_password_hash
+from datetime import datetime
+
 from infraestructura.database import get_session
 from core.models import Usuario, Simulador, AsignacionSimulador, Configuracion,Industria,Equipo
+from infraestructura.seguridad import (
+    generar_password_temporal, hashear_password, validar_password,
+)
 
 
 class DecanoService:
@@ -63,16 +67,27 @@ class DecanoService:
             session.close()
 
     @staticmethod
-    def crear_profesor(username, password, nombre, email, activo=True, bloqueado=False, simuladores_ids=None):
+    def crear_profesor(username, password=None, nombre=None, email=None,
+                       activo=True, bloqueado=False, simuladores_ids=None):
         session = get_session()
         try:
             existente = session.query(Usuario).filter_by(username=username).first()
             if existente:
                 return {"error": f"El usuario '{username}' ya existe"}
 
+            if password:
+                ok, mensaje = validar_password(password, username)
+                if not ok:
+                    return {"error": mensaje}
+                password_temporal = password
+            else:
+                password_temporal = generar_password_temporal()
+
             p = Usuario(
                 username=username,
-                password_hash=generate_password_hash(password),
+                password_hash=hashear_password(password_temporal),
+                debe_cambiar_password=True,
+                password_actualizada=datetime.now(),
                 rol="profesor",
                 nombre=nombre,
                 email=email,
@@ -88,7 +103,7 @@ class DecanoService:
                     session.add(AsignacionSimulador(usuario_id=p.id, simulador_id=sim_id))
                 session.commit()
 
-            return {"ok": True, "id": p.id}
+            return {"ok": True, "id": p.id, "password_temporal": password_temporal}
         finally:
             session.close()
 
@@ -111,7 +126,12 @@ class DecanoService:
             if bloqueado is not None:
                 p.bloqueado = bloqueado
             if nueva_password:
-                p.password_hash = generate_password_hash(nueva_password)
+                ok, mensaje = validar_password(nueva_password, p.username)
+                if not ok:
+                    return {"error": mensaje}
+                p.password_hash = hashear_password(nueva_password)
+                p.debe_cambiar_password = True
+                p.password_actualizada = datetime.now()
 
             if simuladores_ids is not None:
                 session.query(AsignacionSimulador).filter_by(usuario_id=p.id).delete()
@@ -200,21 +220,32 @@ class DecanoService:
             session.close()
 
     @staticmethod
-    def resetear_password_usuario(usuario_id):
-        from werkzeug.security import generate_password_hash
+    def resetear_password_usuario(usuario_id, password=None):
         session = get_session()
         try:
             user = session.query(Usuario).filter_by(id=usuario_id).first()
             if not user:
                 return {"error": "Usuario no encontrado"}
-            
-            # Si es alumno o profesor, la contraseña cambia a PASSWORD
-            # Si es decano, se la dejamos en '123' para no bloquearlo
-            nueva_pass = "PASSWORD" if user.rol in ["alumno", "profesor"] else "123"
-            
-            user.password_hash = generate_password_hash(nueva_pass)
+
+            if password:
+                ok, mensaje = validar_password(password, user.username)
+                if not ok:
+                    return {"error": mensaje}
+                nueva_pass = password
+            else:
+                nueva_pass = generar_password_temporal()
+
+            user.password_hash = hashear_password(nueva_pass)
+            user.debe_cambiar_password = True
+            user.password_actualizada = datetime.now()
             session.commit()
-            return {"ok": True, "nueva_pass": nueva_pass, "username": user.username}
+            return {
+                "ok": True,
+                "nueva_pass": nueva_pass,
+                "username": user.username,
+                "nombre": user.nombre,
+                "debe_cambiar_password": True,
+            }
         except Exception as e:
             session.rollback()
             return {"error": str(e)}
@@ -311,7 +342,8 @@ class DecanoService:
                     "nombre": user.nombre,
                     "rol": user.rol,
                     "status": "Activo" if user.activo else "Inactivo",
-                    "contexto": contexto # Aquí va la industria y equipo
+                    "contexto": contexto, # Aquí va la industria y equipo
+                    "debe_cambiar_password": bool(user.debe_cambiar_password),
                 })
             return resultado
         finally:
@@ -324,6 +356,8 @@ class DecanoService:
             user = session.query(Usuario).filter_by(id=usuario_id).first()
             if not user:
                 return {"error": "Usuario no encontrado"}
+            if user.rol == "decano":
+                return {"error": "No se puede desactivar una cuenta de decano."}
             
             # Para no romper la base de datos por llaves foráneas, solo lo desactivamos
             user.activo = False

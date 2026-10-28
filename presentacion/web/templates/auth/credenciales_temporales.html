@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PACHA - Credenciales temporales</title>
+    <style>
+      :root {
+        --tinta: #514653;
+        --suave: #6b6169;
+        --borde: #e3dbe1;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f6f2ee;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--tinta);
+        padding: 32px 18px;
+        box-sizing: border-box;
+      }
+      .contenedor {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .cabecera h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+      }
+      .cabecera p {
+        margin: 0 0 20px;
+        color: var(--suave);
+      }
+      .aviso {
+        background: #fff7e6;
+        border-left: 5px solid #e0a100;
+        border-radius: 9px;
+        padding: 14px 18px;
+        color: #7a5200;
+        font-size: 14px;
+        line-height: 1.55;
+        margin-bottom: 18px;
+      }
+      .errores {
+        background: #fde8ec;
+        border-left: 5px solid #c0395a;
+        border-radius: 9px;
+        padding: 12px 18px;
+        color: #8b2234;
+        font-size: 14px;
+        margin-bottom: 18px;
+      }
+      .errores ul { margin: 6px 0 0; padding-left: 18px; }
+      .card {
+        background: #fff;
+        border: 1px solid var(--borde);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th, td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid #f0eaee;
+        vertical-align: top;
+      }
+      th {
+        background: #faf7f4;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8b7f87;
+      }
+      tr:last-child td { border-bottom: 0; }
+      .clave {
+        font-family: "Cascadia Mono", Consolas, monospace;
+        background: #f2edf1;
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 13.5px;
+        white-space: nowrap;
+      }
+      .acciones {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+        align-items: center;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 0;
+        background: var(--tinta);
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .btn.secundario {
+        background: #fff;
+        color: var(--tinta);
+        border: 1px solid var(--borde);
+      }
+      .nota {
+        margin-top: 16px;
+        color: var(--suave);
+        font-size: 12.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="contenedor">
+      <div class="cabecera">
+        <h1>{{ titulo or "Credenciales temporales" }}</h1>
+        <p>{{ subtitulo or "Entrega estas claves a las personas correspondientes." }}</p>
+      </div>
+
+      <div class="aviso">
+        <strong>⚠️ Se muestran una sola vez.</strong>
+        No se guardan en texto plano ni se registran en logs. Cada persona
+        deberá cambiar su contraseña en el primer inicio de sesión.
+      </div>
+
+      {% if errores %}
+      <div class="errores">
+        <strong>Filas con problemas:</strong>
+        <ul>
+          {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Contraseña temporal</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in credenciales %}
+            <tr>
+              <td><strong>{{ c.usuario }}</strong></td>
+              <td>{{ c.nombre or "—" }}</td>
+              <td><span class="clave">{{ c.password }}</span></td>
+              <td>{{ c.detalle or "—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="acciones">
+        <button type="button" class="btn" id="btn-copiar">📋 Copiar credenciales</button>
+        <a class="btn secundario" href="{{ volver_url or url_for('auth.index') }}">
+          {{ volver_texto or "Volver" }}
+        </a>
+      </div>
+      <p class="nota">
+        Si alguien pierde su clave, genera una nueva desde la gestión de
+        contraseñas. No es posible recuperar la anterior.
+      </p>
+    </div>
+
+    <script>
+      const filas = {{ credenciales | tojson }};
+      document.getElementById("btn-copiar").addEventListener("click", async function () {
+        const lineas = filas.map(
+          (c) => `${c.usuario}\t${c.password}\t${c.nombre || ""}`
+        );
+        const texto = "Usuario\tContraseña\tNombre\n" + lineas.join("\n");
+        try {
+          await navigator.clipboard.writeText(texto);
+          this.textContent = "✅ Copiado";
+        } catch (e) {
+          this.textContent = "No se pudo copiar";
+        }
+      });
+    </script>
+    {% include "partials/db_badge.html" %}
+  </body>
+</html>

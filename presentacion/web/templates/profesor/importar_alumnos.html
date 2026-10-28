@@ -70,6 +70,7 @@
 
                 <form action="{{ url_for('profesor.importar_alumnos_csv', industria_id=industria.id) }}" 
                       method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                     <div style="display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap;">
                         <div class="form-campo" style="flex:1; min-width:280px;">
                             <label>Archivo CSV</label>
@@ -102,7 +103,7 @@
                     </ul>
                     <p style="margin-top:12px; font-size:13px; color:#888;">
                         💡 <strong>Usuario:</strong> se genera del email (ej: <code>juan@ejemplo.bo</code> → <code>juan</code>)<br>
-                        🔐 <strong>Contraseña:</strong> todos reciben <code>alumno123</code>
+                        🔐 <strong>Contraseña:</strong> se genera una clave temporal aleatoria por alumno y se muestra una sola vez al importar.
                     </p>
                 </div>
 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PACHA - Solicitud inválida</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f4efe9;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #514653;
+      }
+      .caja {
+        background: #fff;
+        padding: 32px;
+        border-radius: 16px;
+        max-width: 460px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+        text-align: center;
+      }
+      h1 { margin: 0 0 10px; font-size: 24px; }
+      p { margin: 0 0 18px; color: #6b6169; line-height: 1.5; }
+      a {
+        display: inline-block;
+        padding: 10px 18px;
+        border-radius: 8px;
+        background: #514653;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="caja">
+      <h1>⚠️ Solicitud inválida</h1>
+      <p>
+        El formulario expiró o no incluye el token de seguridad. Vuelve a
+        cargar la página e inténtalo de nuevo.
+      </p>
+      <a href="{{ url_for('auth.index') }}">Volver al inicio</a>
+    </div>
+    {% include "partials/db_badge.html" %}
+  </body>
+</html>

@@ -26,6 +26,10 @@ instance/
 .DS_Store
 Thumbs.db
 
+# Configuración local de agentes (OpenCode)
+.agents/
+skills-lock.json
+
 # Logs
 *.log
 

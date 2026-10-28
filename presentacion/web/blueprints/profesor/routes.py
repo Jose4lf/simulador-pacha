@@ -1,10 +1,12 @@
 # presentacion/web/blueprints/profesor/routes.py
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify, flash, Response
+from datetime import datetime
 from aplicacion.profesor_service import ProfesorService
 from aplicacion.simulacion_service import SimulacionService
+from aplicacion.proyecto_service import ProyectoService
 from infraestructura.database import get_session
+from infraestructura.seguridad import hashear_password, validar_password
 from core.models import Usuario, Equipo, Industria
-from werkzeug.security import generate_password_hash
 
 profesor_bp = Blueprint("profesor", __name__)
 
@@ -15,6 +17,16 @@ def _verificar_profesor():
 
 def _profesor_id():
     return session.get("usuario_id")
+
+
+def _industria_autorizada(industria_id):
+    """True solo si la simulación pertenece al profesor en sesión."""
+    return ProfesorService.profesor_posee_industria(_profesor_id(), industria_id)
+
+
+def _alumno_autorizado(alumno_id):
+    """True solo si el alumno pertenece a una simulación del profesor."""
+    return ProfesorService.profesor_posee_alumno(_profesor_id(), alumno_id)
 
 
 # ============================================================
@@ -103,6 +115,10 @@ def detalle_simulacion(industria_id):
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
 
+    if not _industria_autorizada(industria_id):
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
+
     industria = ProfesorService.obtener_industria(industria_id)
     if not industria:
         flash("Simulación no encontrada", "error")
@@ -116,6 +132,9 @@ def eliminar_simulacion(industria_id):
     # Elimina una simulación y sus datos (Conecta con: ProfesorService.eliminar_industria)
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
+
+    if not _industria_autorizada(industria_id):
+        return jsonify({"error": "No encontrado"}), 404
 
     resultado = ProfesorService.eliminar_industria(industria_id)
 
@@ -132,6 +151,9 @@ def toggle_envio(industria_id):
     # Habilita/Deshabilita el envío de decisiones (Conecta con: ProfesorService.toggle_permitir_envio)
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
+
+    if not _industria_autorizada(industria_id):
+        return jsonify({"error": "No encontrado"}), 404
 
     resultado = ProfesorService.toggle_permitir_envio(industria_id)
     if "error" in resultado:
@@ -150,6 +172,10 @@ def decisiones(industria_id):
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
 
+    if not _industria_autorizada(industria_id):
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
+
     data = ProfesorService.obtener_decisiones_industria(industria_id)
     if not data:
         flash("Simulación no encontrada", "error")
@@ -164,18 +190,64 @@ def procesar_ronda(industria_id):
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
 
-    resultado = SimulacionService.procesar_ronda(industria_id)
+    if not _industria_autorizada(industria_id):
+        return jsonify({"error": "No encontrado"}), 404
+
+    resultado = SimulacionService.procesar_ronda(industria_id, usuario_id=_profesor_id())
 
     if "error" in resultado:
         flash(f"Error al procesar: {resultado['error']}", "error")
     else:
-        flash(
-            f"✅ Ronda {resultado['anio_procesado']} procesada. "
-            f"{resultado['total_equipos']} equipos, {resultado['total_marcas']} marcas.",
-            "exito"
+        mensaje = (
+            f"✅ Ronda {resultado['anio_procesado']} procesada: reporte "
+            f"{resultado['siguiente_anio']}. {resultado['total_equipos']} equipos, "
+            f"{resultado['total_marcas']} marcas, {resultado['estudios_generados']} estudios."
         )
+        if resultado["equipos_sin_decision"]:
+            nombres = ", ".join(
+                f"Equipo {e['numero']}" for e in resultado["equipos_sin_decision"]
+            )
+            mensaje += f" Sin decisión efectiva: {nombres} (se usaron valores vigentes)."
+        proyectos = resultado.get("proyectos") or {}
+        if proyectos.get("evaluados"):
+            mensaje += (
+                f" I+D: {proyectos.get('aprobados', 0)} aprobado(s) de "
+                f"{proyectos['evaluados']} evaluado(s)."
+            )
+        aplicados = resultado.get("proyectos_aplicados") or {}
+        if aplicados.get("marcas_nuevas"):
+            mensaje += (
+                f" Marcas nuevas lanzadas: "
+                f"{len(aplicados['marcas_nuevas'])}."
+            )
+        if resultado["finalizada"]:
+            mensaje += " La simulación quedó finalizada."
+        flash(mensaje, "exito")
 
     return redirect(url_for("profesor.detalle_simulacion", industria_id=industria_id))
+
+
+@profesor_bp.route("/simulaciones/<int:industria_id>/proyectos")
+def proyectos(industria_id):
+    # Proyectos de I&D de todos los equipos (HTML: profesor/proyectos.html)
+    if not _verificar_profesor():
+        return redirect(url_for("auth.index"))
+
+    if not _industria_autorizada(industria_id):
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
+
+    industria = ProfesorService.obtener_industria(industria_id)
+    if not industria:
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
+
+    return render_template(
+        "profesor/proyectos.html",
+        nombre=session.get("nombre"),
+        industria=industria,
+        equipos=ProyectoService.listar_por_industria(industria_id),
+    )
 
 
 # ============================================================
@@ -186,6 +258,10 @@ def resultados(industria_id):
     # Muestra los resultados generales de la simulación (HTML: profesor/resultados.html)
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
+
+    if not _industria_autorizada(industria_id):
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
 
     data = ProfesorService.obtener_resultados(industria_id)
     if not data:
@@ -208,11 +284,41 @@ def contrasenas():
     return render_template("profesor/contrasenas.html", nombre=session.get("nombre"), alumnos=alumnos)
 
 
+@profesor_bp.route("/alumnos/resetear-todos", methods=["POST"])
+def resetear_todos_alumnos():
+    # Genera una clave temporal distinta para cada alumno del profesor.
+    if not _verificar_profesor():
+        return jsonify({"error": "No autorizado"}), 403
+
+    resultado = ProfesorService.resetear_passwords_alumnos(_profesor_id())
+    if "error" in resultado:
+        flash(resultado["error"], "error")
+        return redirect(url_for("profesor.contrasenas"))
+
+    credenciales = resultado["credenciales"]
+    if not credenciales:
+        flash("No hay alumnos registrados para resetear.", "error")
+        return redirect(url_for("profesor.contrasenas"))
+
+    return render_template(
+        "auth/credenciales_temporales.html",
+        titulo="Contraseñas temporales generadas",
+        subtitulo=f"Se generaron {len(credenciales)} claves nuevas para tus alumnos.",
+        credenciales=credenciales,
+        volver_url=url_for("profesor.contrasenas"),
+        volver_texto="Volver a gestión de contraseñas",
+    )
+
+
 @profesor_bp.route("/alumnos/<int:alumno_id>/eliminar", methods=["POST"])
 def eliminar_alumno(alumno_id):
     # Desvincula a un alumno de su equipo (Conecta con: ProfesorService.eliminar_alumno)
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
+
+    if not _alumno_autorizado(alumno_id):
+        flash("Alumno no encontrado", "error")
+        return redirect(url_for("profesor.contrasenas"))
 
     resultado = ProfesorService.eliminar_alumno(alumno_id)
     
@@ -229,6 +335,10 @@ def editar_alumno(alumno_id):
     # Muestra y procesa el formulario de edición de alumno (HTML: profesor/editar_alumno.html)
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
+
+    if not _alumno_autorizado(alumno_id):
+        flash("Alumno no encontrado", "error")
+        return redirect(url_for("profesor.contrasenas"))
 
     session_db = get_session()
     try:
@@ -249,12 +359,26 @@ def editar_alumno(alumno_id):
             alumno.activo = activo
             
             if equipo_id and equipo_id.strip():
-                alumno.equipo_id = int(equipo_id)
+                try:
+                    equipo_id_int = int(equipo_id)
+                except ValueError:
+                    flash("Equipo no válido", "error")
+                    return redirect(url_for("profesor.editar_alumno", alumno_id=alumno_id))
+                if not ProfesorService.profesor_posee_equipo(_profesor_id(), equipo_id_int):
+                    flash("El equipo seleccionado no pertenece a tus simulaciones", "error")
+                    return redirect(url_for("profesor.editar_alumno", alumno_id=alumno_id))
+                alumno.equipo_id = equipo_id_int
             else:
                 alumno.equipo_id = None
 
             if nueva_pass:
-                alumno.password_hash = generate_password_hash(nueva_pass)
+                ok, mensaje = validar_password(nueva_pass, alumno.username)
+                if not ok:
+                    flash(mensaje, "error")
+                    return redirect(url_for("profesor.editar_alumno", alumno_id=alumno_id))
+                alumno.password_hash = hashear_password(nueva_pass)
+                alumno.debe_cambiar_password = True
+                alumno.password_actualizada = datetime.now()
 
             session_db.commit()
             flash("Alumno actualizado correctamente", "exito")
@@ -271,24 +395,15 @@ def editar_alumno(alumno_id):
 
 @profesor_bp.route("/alumnos/<int:alumno_id>/resetear", methods=["POST"])
 def resetear_alumno_password(alumno_id):
-    # Resetea la contraseña del alumno a "PASSWORD" (AJAX desde contrasenas.html)
+    # Genera una clave temporal; solo para alumnos del profesor en sesión.
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
 
-    session_db = get_session()
-    try:
-        alumno = session_db.query(Usuario).filter_by(id=alumno_id, rol="alumno").first()
-        if not alumno:
-            return jsonify({"error": "Alumno no encontrado"}), 404
-
-        alumno.password_hash = generate_password_hash("PASSWORD")
-        session_db.commit()
-        return jsonify({"ok": True, "username": alumno.username})
-    except Exception as e:
-        session_db.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        session_db.close()
+    resultado = ProfesorService.resetear_password_alumno(_profesor_id(), alumno_id)
+    if "error" in resultado:
+        estado = 404 if resultado["error"] == "Alumno no encontrado" else 500
+        return jsonify(resultado), estado
+    return jsonify(resultado)
 
 
 # ============================================================
@@ -309,6 +424,10 @@ def importar_alumnos_form(industria_id):
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
 
+    if not _industria_autorizada(industria_id):
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
+
     industria = ProfesorService.obtener_industria(industria_id)
     if not industria:
         flash("Simulación no encontrada", "error")
@@ -323,6 +442,9 @@ def importar_alumnos_csv(industria_id):
     # Procesa el archivo CSV y crea a los alumnos (Conecta con: ProfesorService.importar_alumnos_csv)
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
+
+    if not _industria_autorizada(industria_id):
+        return jsonify({"error": "No encontrado"}), 404
 
     archivo = request.files.get("archivo_csv")
     if not archivo:
@@ -348,15 +470,29 @@ def importar_alumnos_csv(industria_id):
         flash(resultado["error"], "error")
         return redirect(url_for("profesor.importar_alumnos_form", industria_id=industria_id))
 
-    creados = len(resultado["creados"])
-    errores = len(resultado["errores"])
-    mensaje = f"✅ {creados} alumno(s) creado(s)"
-    if errores > 0:
-        mensaje += f" | ⚠️ {errores} error(es)"
+    if resultado.get("creados"):
+        credenciales = [
+            {
+                "usuario": c["username"],
+                "nombre": c["nombre"],
+                "password": c["password"],
+                "detalle": f"Equipo {c['equipo']}" + (" · Representante" if c["representante"] else ""),
+            }
+            for c in resultado["creados"]
+        ]
+        return render_template(
+            "auth/credenciales_temporales.html",
+            titulo="Alumnos importados",
+            subtitulo=f"Se crearon {len(credenciales)} cuentas con contraseña temporal.",
+            credenciales=credenciales,
+            errores=resultado["errores"],
+            volver_url=url_for("profesor.importar_alumnos_form", industria_id=industria_id),
+            volver_texto="Volver a importar",
+        )
 
-    flash(mensaje, "exito" if creados > 0 else "error")
-    session["ultimo_import_alumnos"] = {"creados": resultado["creados"], "errores": resultado["errores"]}
-
+    errores = resultado.get("errores", [])
+    detalle = " | ".join(errores[:3]) if errores else "sin filas válidas"
+    flash(f"No se creó ningún alumno: {detalle}", "error")
     return redirect(url_for("profesor.importar_alumnos_form", industria_id=industria_id))
 
 
@@ -365,6 +501,10 @@ def exportar_resultados_csv(industria_id):
     # Genera y descarga un CSV con los resultados (Conecta con: ProfesorService.exportar_resultados_csv)
     if not _verificar_profesor():
         return redirect(url_for("auth.index"))
+
+    if not _industria_autorizada(industria_id):
+        flash("Simulación no encontrada", "error")
+        return redirect(url_for("profesor.simulaciones"))
 
     industria = ProfesorService.obtener_industria(industria_id)
     if not industria:

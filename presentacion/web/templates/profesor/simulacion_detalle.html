@@ -2,6 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <meta name="csrf-token" content="{{ csrf_token }}" />
     <title>PACHA - Panel de Control</title>
     <link
       rel="stylesheet"
@@ -167,6 +168,7 @@
                   );
                 "
               >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                 <button
                   type="submit"
                   class="btn-acciones"
@@ -250,6 +252,13 @@
             📊 VER RESULTADOS
           </a>
           <a
+            href="{{ url_for('profesor.proyectos', industria_id=industria.id) }}"
+            class="btn-primario"
+            style="background: #e6d7f5; color: #5a3a7a"
+          >
+            🔬 VER I+D
+          </a>
+          <a
             href="{{ url_for('profesor.importar_alumnos_form', industria_id=industria.id) }}"
             class="btn-primario"
             style="background: #b9ddf4; color: #2c5f7d"
@@ -294,7 +303,10 @@
           '{{ url_for("profesor.toggle_envio", industria_id=industria.id) }}',
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content,
+            },
           },
         )
           .then((r) => r.json())
@@ -324,6 +336,11 @@
         form.method = "POST";
         form.action =
           '{{ url_for("profesor.procesar_ronda", industria_id=industria.id) }}';
+        const token = document.createElement("input");
+        token.type = "hidden";
+        token.name = "csrf_token";
+        token.value = document.querySelector('meta[name="csrf-token"]').content;
+        form.appendChild(token);
         document.body.appendChild(form);
         form.submit();
       }

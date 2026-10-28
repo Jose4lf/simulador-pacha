@@ -117,6 +117,7 @@
         {% endwith %}
 
         <form action="{{ url_for('decano.guardar_config') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
 
           <!-- SECCIÓN 1: IDENTIDAD DEL SISTEMA -->
           <div class="config-section">

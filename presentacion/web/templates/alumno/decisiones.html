@@ -32,6 +32,7 @@
                 <a href="{{ url_for('alumno.panel') }}" class="sidebar-item"><span class="sidebar-icon">🏠</span><span class="sidebar-label">Inicio</span></a>
                 <a href="{{ url_for('alumno.decisiones') }}" class="sidebar-item activo"><span class="sidebar-icon">📝</span><span class="sidebar-label">Decisiones</span></a>
                 <a href="{{ url_for('alumno.estudios') }}" class="sidebar-item"><span class="sidebar-icon">📊</span><span class="sidebar-label">Estudios</span></a>
+                <a href="{{ url_for('alumno.proyectos') }}" class="sidebar-item"><span class="sidebar-icon">🔬</span><span class="sidebar-label">I+D</span></a>
                 <a href="{{ url_for('alumno.manual') }}" class="sidebar-item"><span class="sidebar-icon">📖</span><span class="sidebar-label">Manual</span></a>
             </nav>
             <div class="sidebar-footer"><p>© PACHA 2026</p><p>v1.0</p></div>
@@ -41,6 +42,13 @@
 
             <h1 class="panel-titulo">Panel de Decisiones</h1>
             <p class="panel-subtitulo">Período {{ data.industria.anio_actual }} — Decisión Nº {{ data.industria.anio_actual + 1 }}</p>
+
+            {% if data.decision and data.decision.estado == 'borrador' %}
+            <div class="aviso-reglas" style="border-left-color:#e0a800;">
+                <h4>📝 Borrador guardado</h4>
+                <p>Tu decisión aún no es efectiva. Revísala y pulsa <strong>Enviar decisión</strong> para que el profesor la procese.</p>
+            </div>
+            {% endif %}
 
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -84,6 +92,7 @@
             {% endif %}
 
             <form action="{{ url_for('alumno.enviar_decision') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
 
                 <!-- DECISIONES DE MARKETING -->
                 <section class="seccion-reportes">
@@ -103,21 +112,90 @@
                             {% for marca in data.marcas %}
                             <tr>
                                 <td><span class="marca-badge">{{ marca.nombre }}</span></td>
-                                <td><input type="text" name="proyecto_id_{{ marca.nombre }}"
-                                           {% if data.industria.anio_actual == 0 %}disabled{% endif %}></td>
+                                <td>
+                                    {% if marca.proyectos %}
+                                    <select name="proyecto_id_{{ marca.nombre }}" {% if data.industria.anio_actual == 0 %}disabled{% endif %}>
+                                        <option value="">— Sin proyecto —</option>
+                                        {% for proyecto in marca.proyectos %}
+                                        <option value="{{ proyecto.nombre }}"
+                                                {% if marca.proyecto_id == proyecto.nombre %}selected{% endif %}>
+                                            {{ proyecto.nombre }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% else %}
+                                    <input type="text" value="—" disabled
+                                           title="No hay proyectos aprobados para esta marca">
+                                    {% endif %}
+                                </td>
                                 <td><input type="number" name="produccion_{{ marca.nombre }}"
-                                           min="0" step="10" value="{{ marca.produccion_actual }}"
+                                           min="0" step="10" value="{{ marca.produccion_form }}"
                                            {% if data.industria.anio_actual == 0 %}disabled{% endif %} required></td>
                                 <td><input type="number" name="precio_{{ marca.nombre }}"
-                                           min="0" step="1" value="{{ marca.precio_actual }}" required></td>
+                                           min="0" step="1" value="{{ marca.precio_form }}" required></td>
                                 <td><input type="number" name="publicidad_{{ marca.nombre }}"
-                                           min="0" step="50" value="{{ marca.publicidad_actual }}"
+                                           min="0" step="50" value="{{ marca.publicidad_form }}"
                                            {% if data.industria.anio_actual == 0 %}disabled{% endif %} required></td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </section>
+
+                {% if data.industria.anio_actual > 0 and data.marcas_nuevas %}
+                <!-- LANZAMIENTO DE MARCAS NUEVAS (PROYECTO I+D APROBADO) -->
+                <section class="seccion-reportes" style="margin-top: 25px;">
+                    <h2 class="seccion-titulo"><span>🚀</span> Lanzar una marca nueva</h2>
+                    <p style="font-size:14px; color:#888; margin-bottom:15px;">
+                        Cada proyecto aprobado de marca nueva puede lanzarse una vez.
+                        Deja el nombre en blanco si este período no lo vas a lanzar.
+                    </p>
+
+                    {% for nuevo in data.marcas_nuevas %}
+                    <div style="border:1px solid #eee; border-radius:10px; padding:15px; margin-bottom:15px;">
+                        <h3 style="font-size:16px; color:#8b1c4e; margin-bottom:10px;">
+                            Proyecto {{ nuevo.nombre }}
+                        </h3>
+                        <table class="tabla-decisiones">
+                            <tbody>
+                                <tr>
+                                    <th style="text-align:left;">MARCA NUEVA</th>
+                                    <td>
+                                        <input type="text" name="nueva_marca_{{ nuevo.nombre }}"
+                                               maxlength="10" placeholder="SAMA"
+                                               style="text-transform:uppercase;">
+                                    </td>
+                                    <th style="text-align:left;">PRODUCCIÓN<br><small>(Miles U)</small></th>
+                                    <td><input type="number" name="produccion_nueva_{{ nuevo.nombre }}"
+                                               min="0" step="10" value="0"></td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left;">PRECIO<br><small>(Bs.)</small></th>
+                                    <td><input type="number" name="precio_nueva_{{ nuevo.nombre }}"
+                                               min="0" step="1" value="300"></td>
+                                    <th style="text-align:left;">PUBLICIDAD<br><small>(Miles Bs.)</small></th>
+                                    <td><input type="number" name="publicidad_nueva_{{ nuevo.nombre }}"
+                                               min="0" step="50" value="0"></td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left;">VENDEDORES</th>
+                                    <td colspan="3">
+                                        {% for canal in canales %}
+                                        <label style="margin-right:14px; font-size:13px;">
+                                            {{ canal.nombre }}
+                                            <input type="number" min="0" step="1" value="0"
+                                                   name="vendedores_nueva_{{ canal.id }}_{{ nuevo.nombre }}"
+                                                   style="width:80px;">
+                                        </label>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
 
                 <!-- FUERZA DE VENTAS -->
                 {% if data.industria.anio_actual > 0 %}
@@ -144,7 +222,7 @@
                                 <td>
                                     <input type="number" name="vendedores_{{ canal.id }}_{{ marca.nombre }}"
                                            min="0" step="1" 
-                                           value="{{ marca.vendedores.get(canal.id, 20) }}" required>
+                                           value="{{ marca.vendedores.get(canal.id, 0) }}" required>
                                 </td>
                                 {% endfor %}
                             </tr>
@@ -173,9 +251,9 @@
                             <tr>
                                 <td><span class="marca-badge">{{ marca.nombre }}</span></td>
                                 <td><input type="number" name="objetivo_x_{{ marca.nombre }}"
-                                           min="-20" max="20" step="0.5" value="0"></td>
+                                           min="-20" max="20" step="0.5" value="{{ marca.objetivo_x }}"></td>
                                 <td><input type="number" name="objetivo_y_{{ marca.nombre }}"
-                                           min="-20" max="20" step="0.5" value="0"></td>
+                                           min="-20" max="20" step="0.5" value="{{ marca.objetivo_y }}"></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -211,6 +289,8 @@
 
                 <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px; padding-top:20px; border-top:2px solid #f0edf3;">
                     <a href="{{ url_for('alumno.panel') }}" class="btn-secundario">CANCELAR</a>
+                    <button type="submit" formaction="{{ url_for('alumno.guardar_borrador') }}"
+                            class="btn-secundario">GUARDAR BORRADOR</button>
                     <button type="submit" class="btn-primario btn-enviar">✓ ENVIAR DECISIÓN</button>
                 </div>
 
