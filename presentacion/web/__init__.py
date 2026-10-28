@@ -1,6 +1,7 @@
 from flask import (
     Flask, flash, jsonify, redirect, render_template, request, session, url_for
 )
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config
 from infraestructura.database import close_session, get_db_info, get_session
@@ -21,6 +22,12 @@ def create_app(config_class=Config):
         static_folder="static"
     )
     app.config.from_object(config_class)
+
+    # Detrás de un proxy inverso (Render, Cloudflare, nginx) se confía en las
+    # cabeceras X-Forwarded-* para recuperar la IP real y el esquema https.
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1
+    )
 
     if app.config.get("ES_PRODUCCION") and app.config.get("SECRET_KEY") == "pacha_2026_secret":
         raise RuntimeError(
