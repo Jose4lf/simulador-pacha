@@ -132,8 +132,8 @@ def create_app(config_class=Config):
         session["rol"] = rol
         session["debe_cambiar_password"] = debe_cambiar
 
-        if debe_cambiar and endpoint not in _RUTAS_SIN_BLOQUEO_PASSWORD:
-            return redirect(url_for("auth.cambiar_password"))
+        #if debe_cambiar and endpoint not in _RUTAS_SIN_BLOQUEO_PASSWORD:
+        #    return redirect(url_for("auth.cambiar_password"))
 
         return None
 
