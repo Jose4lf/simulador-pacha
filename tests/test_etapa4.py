@@ -14,8 +14,8 @@ from core.models import (
     ReporteMarcaCanal, ReporteMarcaSegmento,
 )
 from core.reportes_anio0 import (
-    MERCADO_BASE, factor_participacion, generar_reporte_anio0,
-    porciones_equipo,
+    COSTO_FIJO_POR_MARCA, MERCADO_BASE, factor_participacion,
+    generar_reporte_anio0, porciones_equipo,
 )
 from tests.test_etapa3 import BaseDominio
 
@@ -94,7 +94,7 @@ class TestReporteAnio0(BaseDominio):
                 )
             self.assertAlmostEqual(
                 rep.contribucion_neta_total,
-                rep.contribucion_bruta_total - 500 * len(rep.marcas),
+                rep.contribucion_bruta_total - COSTO_FIJO_POR_MARCA * len(rep.marcas),
                 places=1,
             )
         finally:

@@ -312,22 +312,17 @@ def resetear_todos_alumnos():
 
 @profesor_bp.route("/alumnos/<int:alumno_id>/eliminar", methods=["POST"])
 def eliminar_alumno(alumno_id):
-    # Desvincula a un alumno de su equipo (Conecta con: ProfesorService.eliminar_alumno)
     if not _verificar_profesor():
         return jsonify({"error": "No autorizado"}), 403
-
-    if not _alumno_autorizado(alumno_id):
-        flash("Alumno no encontrado", "error")
-        return redirect(url_for("profesor.contrasenas"))
 
     resultado = ProfesorService.eliminar_alumno(alumno_id)
     
     if "error" in resultado:
         flash(resultado["error"], "error")
     else:
-        flash("Alumno desvinculado del equipo correctamente.", "exito")
+        flash("Alumno eliminado definitivamente de la base de datos.", "exito")
         
-    return redirect(url_for("profesor.contrasenas"))
+    return redirect(url_for("profesor.contrasenas")) # O a "profesor.alumnos" si usas esa vista
 
 
 @profesor_bp.route("/alumnos/<int:alumno_id>/editar", methods=["GET", "POST"])
@@ -525,3 +520,14 @@ def exportar_resultados_csv(industria_id):
         mimetype="text/csv; charset=utf-8",
         headers={"Content-Disposition": f"attachment; filename=resultados_{nombre_archivo}_anio_{anio}.csv"}
     )
+    
+@profesor_bp.before_request
+def verificar_csrf():
+    if request.method == "POST":
+        token_form = request.form.get("csrf_token")
+        token_sesion = session.get("csrf_token")
+        
+        # Usamos la función de comparación segura que tienes en seguridad.py
+        from infraestructura.seguridad import tokens_iguales
+        if not tokens_iguales(token_form, token_sesion):
+            return render_template("auth/error_csrf.html"), 400

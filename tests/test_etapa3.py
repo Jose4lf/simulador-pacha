@@ -23,8 +23,11 @@ from core.models import (
     EstudioResultado, EstudioMercado, LogActividad,
 )
 from core.motor_simulacion import MotorSimulacion
+from core import escenario as esc
 from infraestructura.database import _crear_sqlite_fallback
 from tests.test_etapa2 import BaseConBD, PASSWORD_BASE
+
+ESCENARIO = esc.cargar_escenario()
 
 
 def _marca(nombre, precio=300, publicidad=2500, produccion=100,
@@ -75,7 +78,11 @@ class TestMotor(unittest.TestCase):
         marcas = [_marca(n, produccion=500) for n in ("AAA", "BBB", "CCC", "DDD")]
         salida = self.motor().simular_ronda(marcas, SEGMENTOS, CANALES, 1)
         vendidas = sum(r["unidades_vendidas"] for r in salida["resultados"])
-        self.assertAlmostEqual(vendidas * 1000, salida["mercado_total"], places=0)
+        # Las ventas se redondean a centésimas de miles: residuo máximo de 10
+        # unidades por marca.
+        self.assertAlmostEqual(
+            vendidas * 1000, salida["mercado_total"], delta=50.0
+        )
         for r in salida["resultados"]:
             self.assertEqual(r["demanda_no_satisfecha"], 0)
             self.assertGreaterEqual(r["inventario"], 0)
@@ -96,9 +103,12 @@ class TestMotor(unittest.TestCase):
         salida = self.motor().simular_ronda(marcas, SEGMENTOS, CANALES, 1)
         aaa = next(r for r in salida["resultados"] if r["marca"] == "AAA")
         self.assertGreater(aaa["unidades_vendidas"], 0)
+        # El inventario inicial se deteriora: no se puede vender entero.
+        merma = float(ESCENARIO["motor"]["merma_anual_inventario"])
         self.assertAlmostEqual(
-            aaa["unidades_vendidas"] + aaa["inventario"], 800, places=1
+            aaa["unidades_vendidas"] + aaa["inventario"], 800 * (1 - merma), places=1
         )
+        self.assertAlmostEqual(aaa["merma_unidades"], 800 * merma, places=1)
 
     def test_precio_menor_gana_cuota(self):
         marcas = [

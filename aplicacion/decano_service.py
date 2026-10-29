@@ -75,18 +75,12 @@ class DecanoService:
             if existente:
                 return {"error": f"El usuario '{username}' ya existe"}
 
-            if password:
-                ok, mensaje = validar_password(password, username)
-                if not ok:
-                    return {"error": mensaje}
-                password_temporal = password
-            else:
-                password_temporal = generar_password_temporal()
+            password_final = password if password else "123"
 
             p = Usuario(
                 username=username,
-                password_hash=hashear_password(password_temporal),
-                debe_cambiar_password=True,
+                password_hash=hashear_password(password_final),
+                debe_cambiar_password=False,
                 password_actualizada=datetime.now(),
                 rol="profesor",
                 nombre=nombre,
@@ -103,7 +97,7 @@ class DecanoService:
                     session.add(AsignacionSimulador(usuario_id=p.id, simulador_id=sim_id))
                 session.commit()
 
-            return {"ok": True, "id": p.id, "password_temporal": password_temporal}
+            return {"ok": True, "id": p.id, "password_temporal": password_final}
         finally:
             session.close()
 
@@ -357,11 +351,10 @@ class DecanoService:
             if not user:
                 return {"error": "Usuario no encontrado"}
             if user.rol == "decano":
-                return {"error": "No se puede desactivar una cuenta de decano."}
+                return {"error": "No se puede eliminar una cuenta de decano."}
             
-            # Para no romper la base de datos por llaves foráneas, solo lo desactivamos
-            user.activo = False
-            user.equipo_id = None # Lo sacamos del equipo si es alumno
+            # Eliminación definitiva de la base de datos
+            session.delete(user)
             session.commit()
             return {"ok": True}
         except Exception as e:

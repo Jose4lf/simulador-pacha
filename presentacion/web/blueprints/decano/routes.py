@@ -250,21 +250,16 @@ def contrasenas():
     )
 
 @decano_bp.route("/usuarios/<int:usuario_id>/eliminar", methods=["POST"])
-
 def eliminar_usuario(usuario_id):
     if not _verificar_decano():
         return jsonify({"error": "No autorizado"}), 403
-
-    if usuario_id == session.get("usuario_id"):
-        flash("No puedes desactivar tu propia cuenta.", "error")
-        return redirect(url_for("decano.contrasenas"))
 
     resultado = DecanoService.eliminar_usuario(usuario_id)
     
     if "error" in resultado:
         flash(resultado["error"], "error")
     else:
-        flash("Usuario eliminado (desactivado) correctamente.", "exito")
+        flash("Usuario eliminado definitivamente de la base de datos.", "exito")
         
     return redirect(url_for("decano.contrasenas"))
 
@@ -350,3 +345,13 @@ def guardar_config():
 
     flash("Configuración guardada", "exito")
     return redirect(url_for("decano.config"))
+@decano_bp.before_request
+def verificar_csrf():
+    if request.method == "POST":
+        token_form = request.form.get("csrf_token")
+        token_sesion = session.get("csrf_token")
+        
+        # Usamos la función de comparación segura que tienes en seguridad.py
+        from infraestructura.seguridad import tokens_iguales
+        if not tokens_iguales(token_form, token_sesion):
+            return render_template("auth/error_csrf.html"), 400

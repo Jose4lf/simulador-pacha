@@ -95,9 +95,9 @@
           <div class="aviso-info">
             <strong>💡 Cómo funciona</strong>
             <p>
-              Las contraseñas se guardan con hash y no pueden consultarse.
-              Para entregar credenciales, genera contraseñas temporales: se
-              muestran una sola vez y cada alumno deberá cambiarlas al ingresar.
+              Las contraseñas se guardan con hash y no pueden consultarse. Para
+              entregar credenciales, genera contraseñas temporales: se muestran
+              una sola vez y cada alumno deberá cambiarlas al ingresar.
             </p>
             <ul>
               <li>Las claves son aleatorias y distintas para cada alumno.</li>
@@ -218,7 +218,7 @@
 
                     <button
                       type="button"
-                      onclick='resetearAlumno({{ alumno.id }}, {{ alumno.username|tojson }})'
+                      onclick="resetearAlumno({{ alumno.id }}, {{ alumno.username|tojson }})"
                       style="
                         background: #fff3cd;
                         border: none;
@@ -231,18 +231,16 @@
                       🔑 Resetear
                     </button>
 
-                    <!-- Botón Eliminar -->
                     <form
                       action="{{ url_for('profesor.eliminar_alumno', alumno_id=alumno.id) }}"
                       method="POST"
-                      style="display: inline"
                       onsubmit="
                         return confirm(
-                          '¿Estás seguro de desvincular a este alumno de su equipo?',
+                          '¿Estás seguro de eliminar DEFINITIVAMENTE a este alumno?',
                         );
                       "
+                      style="display: inline"
                     >
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                       <button
                         type="submit"
                         style="

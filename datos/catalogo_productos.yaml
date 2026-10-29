@@ -1,0 +1,206 @@
+# ============================================================================
+# CATÁLOGO DE EMPRESAS Y MARCAS — EL MUNDO DE MARKESTRAT BOLIVIA
+# ============================================================================
+#
+# Reglas de contenido
+# -------------------
+# - Las EMPRESAS son referencias reales del mercado boliviano, usadas solo
+#   como contexto del ejercicio. Su participación en el mercado de helados
+#   queda "pendiente" de verificación documental.
+# - Las MARCAS son ficticias: existen únicamente dentro de la simulación.
+#   No corresponden a productos reales de ninguna empresa.
+# - Ningún dato de este archivo puede presentarse como estadística real.
+#
+# estado_verificacion:
+#   verificado  -> existe una fuente comprobable (se cita en `fuente`)
+#   pendiente   -> falta la fuente; NO debe afirmarse como real
+#   no_aplica   -> el dato es ficticio por diseño
+#
+# naturaleza: oficial | supuesto | ficticio
+# ----------------------------------------------------------------------------
+
+meta:
+  version: 1.0.0
+  actualizado: "2026-10-28"
+  descargo: >
+    Las marcas de este catálogo son ficticias y se crearon para el ejercicio
+    académico. Las empresas mencionadas son referencias del mercado boliviano;
+    esta simulación no afirma que fabriquen estos productos ni reproduce sus
+    cifras reales.
+
+empresas:
+  - codigo: delizia
+    nombre: Delizia
+    nombre_corto: Delizia
+    origen: Santa Cruz de la Sierra
+    naturaleza: oficial
+    fuente: "Empresa boliviana de alimentos"
+    estado_verificacion: pendiente
+    nota: >
+      Se usa como referencia de competidor. No se afirma su participación en
+      el mercado de helados sin fuente documental.
+
+  - codigo: pil_andina
+    nombre: PIL Andina S.A.
+    nombre_corto: PIL Andina
+    origen: La Paz
+    naturaleza: oficial
+    fuente: "Empresa boliviana de lácteos"
+    estado_verificacion: pendiente
+    nota: >
+      Se usa como referencia de competidor. Su línea de helados queda pendiente
+      de verificación.
+
+  - codigo: frigo
+    nombre: Frigo
+    nombre_corto: Frigo
+    origen: Santa Cruz de la Sierra
+    naturaleza: oficial
+    fuente: "Empresa boliviana de helados"
+    estado_verificacion: pendiente
+    nota: "Se usa como referencia de competidor; catálogo de productos pendiente."
+
+  - codigo: panda_inal
+    nombre: Panda (INAL)
+    nombre_corto: Panda
+    origen: La Paz
+    naturaleza: oficial
+    fuente: "Industrias alimenticias bolivianas"
+    estado_verificacion: pendiente
+    nota: "Se usa como referencia de competidor; catálogo de productos pendiente."
+
+  - codigo: cabrera
+    nombre: Cabrera
+    nombre_corto: Cabrera
+    origen: Cochabamba
+    naturaleza: oficial
+    fuente: "Empresa boliviana de helados"
+    estado_verificacion: pendiente
+    nota: "Se usa como referencia de competidor; catálogo de productos pendiente."
+
+# ----------------------------------------------------------------------------
+# MARCAS INICIALES DEL ESCENARIO
+# ----------------------------------------------------------------------------
+# Dos marcas ficticias por empresa. Los nombres son inventados para el juego y
+# están marcados como ficticios; no se atribuyen a productos reales.
+# `linea` describe la composición con la que arranca la marca.
+# ----------------------------------------------------------------------------
+marcas:
+  - codigo: delizia_aurora
+    empresa: delizia
+    nombre: Aurora
+    linea: crema
+    posicionamiento: familiar
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: delizia_bruma
+    empresa: delizia
+    nombre: Bruma
+    linea: agua
+    posicionamiento: economico
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: pil_andina_cumbre
+    empresa: pil_andina
+    nombre: Cumbre
+    linea: crema
+    posicionamiento: premium
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: pil_andina_altura
+    empresa: pil_andina
+    nombre: Altura
+    linea: mixto
+    posicionamiento: familiar
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: frigo_tropico
+    empresa: frigo
+    nombre: Trópico
+    linea: agua
+    posicionamiento: economico
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: frigo_selva
+    empresa: frigo
+    nombre: Selva
+    linea: mixto
+    posicionamiento: familiar
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: panda_inal_andino
+    empresa: panda_inal
+    nombre: Andino
+    linea: crema
+    posicionamiento: familiar
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: panda_inal_valle
+    empresa: panda_inal
+    nombre: Valle
+    linea: mixto
+    posicionamiento: premium
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: cabrera_sol
+    empresa: cabrera
+    nombre: Sol
+    linea: agua
+    posicionamiento: economico
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+  - codigo: cabrera_luna
+    empresa: cabrera
+    nombre: Luna
+    linea: crema
+    posicionamiento: premium
+    naturaleza: ficticio
+    estado_verificacion: no_aplica
+    nota: "Marca ficticia del ejercicio."
+
+# ----------------------------------------------------------------------------
+# PERFILES DE MARCA
+# ----------------------------------------------------------------------------
+# Cada línea define los atributos iniciales (1-5) y el precio de partida.
+# El atributo 6 (costo unitario) se calcula con la fórmula del escenario.
+# ----------------------------------------------------------------------------
+lineas:
+  agua:
+    composicion: 0
+    porcion_ml: 90
+    calidad_ingredientes: 45
+    cremosidad: 25
+    empaque: 45
+    precio_inicial: 4.50
+  mixto:
+    composicion: 1
+    porcion_ml: 120
+    calidad_ingredientes: 62
+    cremosidad: 55
+    empaque: 60
+    precio_inicial: 7.00
+  crema:
+    composicion: 2
+    porcion_ml: 140
+    calidad_ingredientes: 75
+    cremosidad: 78
+    empaque: 70
+    precio_inicial: 9.50

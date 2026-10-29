@@ -354,12 +354,11 @@ class ProfesorService:
 
                     password_temporal = generar_password_temporal()
 
-                    # Savepoint por fila: un error no revierte las filas válidas.
                     with session.begin_nested():
                         alumno = Usuario(
                             username=username,
-                            password_hash=hashear_password(password_temporal),
-                            debe_cambiar_password=True,
+                            password_hash=hashear_password("123"), # 👈 Contraseña fija
+                            debe_cambiar_password=False, # 👈 No obligar a cambiar
                             rol="alumno", nombre=nombre, email=email,
                             activo=True, bloqueado=False,
                             equipo_id=equipo.id, es_representante=(numero_alumno == 1),
@@ -370,7 +369,7 @@ class ProfesorService:
                     resultado["creados"].append({
                         "username": username, "nombre": nombre, "email": email,
                         "equipo": equipo_num, "representante": (numero_alumno == 1),
-                        "password": password_temporal,
+                        "password": "123", # 👈 Mostrar 123 en la tabla
                     })
                 except Exception as e:
                     resultado["errores"].append(f"Fila {i}: {str(e)}")
@@ -541,9 +540,11 @@ class ProfesorService:
         session = get_session()
         try:
             alumno = session.query(Usuario).filter_by(id=alumno_id, rol='alumno').first()
-            if not alumno: return {"error": "Alumno no encontrado"}
-            alumno.equipo_id = None
-            alumno.activo = False
+            if not alumno: 
+                return {"error": "Alumno no encontrado"}
+            
+            # Eliminación definitiva
+            session.delete(alumno)
             session.commit()
             return {"ok": True}
         except Exception as e:

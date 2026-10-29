@@ -1,0 +1,600 @@
+# ============================================================================
+# EL MUNDO DE MARKESTRAT BOLIVIA
+# Escenario de simulación: industria de helados en Bolivia
+# ============================================================================
+#
+# Este archivo es la ÚNICA fuente de verdad del escenario. El motor, los
+# servicios, las semillas y las pruebas lo leen a través de `core/escenario.py`.
+#
+# Reglas de contenido
+# -------------------
+# Toda cifra macro declara cuatro campos obligatorios:
+#   valor                : el número
+#   unidad               : en qué se mide
+#   naturaleza           : oficial | supuesto | ficticio
+#   fuente               : de dónde sale (texto) o null si es supuesto
+#   fecha                : año o fecha de la referencia
+#   estado_verificacion  : verificado | pendiente
+#
+# `oficial`   = dato publicado por un organismo o empresa.
+# `supuesto`  = decisión del ejercicio académico, no un dato observado.
+# `ficticio`  = inventado para la simulación; no representa la realidad.
+#
+# NINGÚN valor `pendiente` debe presentarse como dato verificado en la interfaz.
+#
+# Unidades del motor (consistentes en todo el sistema)
+# ----------------------------------------------------
+#   mercado, demanda, producción disponible : unidades físicas
+#   producción, ventas, inventario          : miles de unidades
+#   precio                                  : Bs por unidad
+#   publicidad, costos, contribución        : miles de Bs
+# ----------------------------------------------------------------------------
+
+meta:
+  codigo: mundo_markestrat_bolivia
+  nombre: El Mundo de Markestrat Bolivia
+  version: 1.0.0
+  industria: helados
+  pais: Bolivia
+  moneda: BOB
+  simbolo_moneda: Bs
+  anio_base: 0
+  anios_maximos: 10
+  descargo: >
+    Simulación académica. Las empresas mencionadas existen en Bolivia, pero
+    las marcas, los productos, las cifras de mercado y todos los resultados
+    económicos de esta simulación son ficticios y no representan información
+    real de esas empresas ni del mercado boliviano de helados.
+
+# ----------------------------------------------------------------------------
+# CONTEXTO MACROECONÓMICO
+# ----------------------------------------------------------------------------
+macro:
+  poblacion_total:
+    valor: 11400000
+    unidad: personas
+    naturaleza: oficial
+    fuente: "INE Bolivia — Censo de Población y Vivienda 2024"
+    fecha: "2024"
+    estado_verificacion: pendiente
+    nota: >
+      Cifra de referencia para dimensionar el mercado. Pendiente de contraste
+      con la publicación oficial definitiva del INE.
+
+  inflacion_anual:
+    valor: 0.057
+    unidad: proporcion_anual
+    naturaleza: oficial
+    fuente: "INE Bolivia — variación del IPC"
+    fecha: "2026-09"
+    estado_verificacion: pendiente
+
+  inflacion_acumulada:
+    valor: 0.0388
+    unidad: proporcion
+    naturaleza: oficial
+    fuente: "INE Bolivia — inflación acumulada del año"
+    fecha: "2026-09"
+    estado_verificacion: pendiente
+
+  tipo_cambio_usd:
+    valor: 11.90
+    unidad: Bs_por_USD
+    naturaleza: oficial
+    fuente: "Banco Central de Bolivia — tipo de cambio oficial"
+    fecha: "2026-10"
+    estado_verificacion: pendiente
+
+  crecimiento_pib:
+    valor: 0.005
+    unidad: proporcion_anual
+    naturaleza: oficial
+    fuente: "CEPAL — proyección de crecimiento para Bolivia"
+    fecha: "2026"
+    estado_verificacion: pendiente
+
+  tasa_desempleo:
+    valor: 0.045
+    unidad: proporcion
+    naturaleza: oficial
+    fuente: "INE Bolivia — Encuesta Continua de Empleo"
+    fecha: "2026"
+    estado_verificacion: pendiente
+
+# ----------------------------------------------------------------------------
+# MERCADO POTENCIAL
+# ----------------------------------------------------------------------------
+# El tamaño del mercado NO se toma de una fuente: se construye con supuestos
+# explícitos para que el ejercicio sea jugable con 5 empresas y 10 marcas.
+#   poblacion * penetracion * frecuencia * unidades_por_compra
+#   11.400.000 * 0,35 * 12 * 1,2 = 57.456.000  ->  redondeado a 57.500.000
+# ----------------------------------------------------------------------------
+mercado:
+  mercado_potencial_base:
+    valor: 57500000
+    unidad: unidades_por_anio
+    naturaleza: supuesto
+    fuente: "Construcción del ejercicio con supuestos explícitos"
+    fecha: "2026"
+    estado_verificacion: no_aplica
+    formula: "poblacion_total * penetracion_consumidores * frecuencia_anual * unidades_por_compra"
+    nota: >
+      Mercado anual de unidades de helado. Rango de diseño 40-60 millones de
+      unidades al año. No es una cifra observada del mercado boliviano.
+
+  penetracion_consumidores:
+    valor: 0.35
+    unidad: proporcion_de_la_poblacion
+    naturaleza: supuesto
+    fuente: "Supuesto del ejercicio académico"
+    fecha: "2026"
+    estado_verificacion: no_aplica
+
+  frecuencia_anual:
+    valor: 12
+    unidad: compras_por_anio
+    naturaleza: supuesto
+    fuente: "Supuesto del ejercicio académico"
+    fecha: "2026"
+    estado_verificacion: no_aplica
+
+  unidades_por_compra:
+    valor: 1.2
+    unidad: unidades_por_compra
+    naturaleza: supuesto
+    fuente: "Supuesto del ejercicio académico"
+    fecha: "2026"
+    estado_verificacion: no_aplica
+
+  crecimiento_anual:
+    valor: 0.02
+    unidad: proporcion_anual
+    naturaleza: supuesto
+    fuente: "Supuesto del ejercicio académico (crecimiento del volumen)"
+    fecha: "2026"
+    estado_verificacion: no_aplica
+
+# Pesos mensuales de consumo. Se normalizan al promedio 1,0 en el motor.
+# Son un supuesto climático-cultural, no una serie estadística.
+estacionalidad:
+  naturaleza: supuesto
+  fuente: "Supuesto del ejercicio académico"
+  estado_verificacion: no_aplica
+  meses:
+    enero: 1.30
+    febrero: 1.10
+    marzo: 1.00
+    abril: 0.85
+    mayo: 0.75
+    junio: 0.70
+    julio: 0.80
+    agosto: 0.85
+    septiembre: 0.95
+    octubre: 1.00
+    noviembre: 1.10
+    diciembre: 1.35
+
+# ----------------------------------------------------------------------------
+# SEGMENTOS DE CONSUMIDOR (5, los pesos suman 1,00)
+# ----------------------------------------------------------------------------
+# elasticidad_precio : cuánto castiga el segmento un precio alto (>1 = sensible)
+# respuesta_publicidad : exponente del awareness en el atractivo
+# peso_cobertura     : exponente de la cobertura de distribución
+# peso_calidad       : peso del ajuste de producto en el atractivo
+# preferencia_composicion : 0 = agua, 1 = mixto, 2 = crema
+# ----------------------------------------------------------------------------
+segmentos:
+  - numero: 1
+    codigo: familias_con_ninos
+    nombre: Familias con niños
+    descripcion: >
+      Hogares con menores de 12 años que compran helado para consumo en casa.
+      Priorizan porción generosa y precio accesible; compran en tiendas de barrio.
+    peso: 0.32
+    elasticidad_precio: 1.20
+    respuesta_publicidad: 0.38
+    peso_cobertura: 0.50
+    peso_calidad: 0.42
+    preferencia_composicion: {agua: 0.25, mixto: 0.40, crema: 0.35}
+    ideal_porcion_ml: 110
+    ideal_calidad: 62
+    ideal_cremosidad: 58
+    ideal_empaque: 60
+    sensibilidad_porcion: 0.60
+    naturaleza: supuesto
+    fuente: "Perfil de segmento construido para el ejercicio"
+    estado_verificacion: no_aplica
+
+  - numero: 2
+    codigo: escolares_universitarios
+    nombre: Escolares y universitarios
+    descripcion: >
+      Consumo impulsivo fuera de casa, cerca de colegios, universidades y
+      paradas de transporte. Alta respuesta a promoción y a disponibilidad.
+    peso: 0.24
+    elasticidad_precio: 1.35
+    respuesta_publicidad: 0.45
+    peso_cobertura: 0.62
+    peso_calidad: 0.28
+    preferencia_composicion: {agua: 0.40, mixto: 0.38, crema: 0.22}
+    ideal_porcion_ml: 90
+    ideal_calidad: 52
+    ideal_cremosidad: 40
+    ideal_empaque: 50
+    sensibilidad_porcion: 0.35
+    naturaleza: supuesto
+    fuente: "Perfil de segmento construido para el ejercicio"
+    estado_verificacion: no_aplica
+
+  - numero: 3
+    codigo: adultos_ocasionales
+    nombre: Adultos urbanos ocasionales
+    descripcion: >
+      Compra esporádica de fin de semana o postre. Valora marca conocida y
+      compra principalmente en supermercados.
+    peso: 0.20
+    elasticidad_precio: 1.00
+    respuesta_publicidad: 0.52
+    peso_cobertura: 0.38
+    peso_calidad: 0.55
+    preferencia_composicion: {agua: 0.20, mixto: 0.35, crema: 0.45}
+    ideal_porcion_ml: 150
+    ideal_calidad: 72
+    ideal_cremosidad: 70
+    ideal_empaque: 72
+    sensibilidad_porcion: 0.50
+    naturaleza: supuesto
+    fuente: "Perfil de segmento construido para el ejercicio"
+    estado_verificacion: no_aplica
+
+  - numero: 4
+    codigo: hogares_gourmet
+    nombre: Hogares gourmet de ingreso alto
+    descripcion: >
+      Busca calidad de ingredientes, textura cremosa y empaque cuidado. Es el
+      segmento menos sensible al precio y el más exigente en calidad.
+    peso: 0.12
+    elasticidad_precio: 0.90
+    respuesta_publicidad: 0.55
+    peso_cobertura: 0.30
+    peso_calidad: 0.72
+    preferencia_composicion: {agua: 0.10, mixto: 0.25, crema: 0.65}
+    ideal_porcion_ml: 180
+    ideal_calidad: 88
+    ideal_cremosidad: 86
+    ideal_empaque: 85
+    sensibilidad_porcion: 0.70
+    naturaleza: supuesto
+    fuente: "Perfil de segmento construido para el ejercicio"
+    estado_verificacion: no_aplica
+
+  - numero: 5
+    codigo: barrio_precio
+    nombre: Compradores de barrio sensibles al precio
+    descripcion: >
+      Compra diaria de bajo monto en la tienda de la esquina. Decide casi
+      exclusivamente por precio y disponibilidad inmediata.
+    peso: 0.12
+    elasticidad_precio: 1.45
+    respuesta_publicidad: 0.28
+    peso_cobertura: 0.70
+    peso_calidad: 0.22
+    preferencia_composicion: {agua: 0.45, mixto: 0.38, crema: 0.17}
+    ideal_porcion_ml: 80
+    ideal_calidad: 45
+    ideal_cremosidad: 35
+    ideal_empaque: 45
+    sensibilidad_porcion: 0.25
+    naturaleza: supuesto
+    fuente: "Perfil de segmento construido para el ejercicio"
+    estado_verificacion: no_aplica
+
+# ----------------------------------------------------------------------------
+# CANALES DE DISTRIBUCIÓN (3, la cobertura suma 1,00)
+# ----------------------------------------------------------------------------
+# margen_canal    : porcentaje del PVP que se queda el canal
+# costo_logistico : porcentaje del PVP que cuesta llegar al canal
+# puntos_de_venta : número de puntos atendibles por el canal
+# ----------------------------------------------------------------------------
+canales:
+  - numero: 1
+    codigo: tiendas_barrio
+    nombre: Tiendas de barrio y micromercados
+    descripcion: >
+      Canal tradicional de proximidad. Alta frecuencia de compra, ticket bajo
+      y fuerte sensibilidad al precio.
+    cobertura: 0.55
+    margen_canal: 0.18
+    costo_logistico: 0.03
+    puntos_de_venta: 92000
+    exigencia_calidad: 0.35
+    naturaleza: supuesto
+    fuente: "Estructura de canal construida para el ejercicio"
+    estado_verificacion: no_aplica
+
+  - numero: 2
+    codigo: supermercados
+    nombre: Supermercados
+    descripcion: >
+      Cadena moderna. Exige marca conocida, empaque cuidado y cumplimiento de
+      condiciones comerciales; menor margen para el fabricante.
+    cobertura: 0.25
+    margen_canal: 0.27
+    costo_logistico: 0.05
+    puntos_de_venta: 1400
+    exigencia_calidad: 0.70
+    naturaleza: supuesto
+    fuente: "Estructura de canal construida para el ejercicio"
+    estado_verificacion: no_aplica
+
+  - numero: 3
+    codigo: heladerias_food_service
+    nombre: Heladerías y food service
+    descripcion: >
+      Heladerías, cafeterías y restaurantes. Compra de mayor valor unitario,
+      exigencia alta de calidad y textura.
+    cobertura: 0.20
+    margen_canal: 0.33
+    costo_logistico: 0.07
+    puntos_de_venta: 6500
+    exigencia_calidad: 0.85
+    naturaleza: supuesto
+    fuente: "Estructura de canal construida para el ejercicio"
+    estado_verificacion: no_aplica
+
+# ----------------------------------------------------------------------------
+# ATRIBUTOS DEL PRODUCTO (6)
+# ----------------------------------------------------------------------------
+# Los atributos 1-5 describen el helado y determinan el costo estándar.
+# El atributo 6 es el costo unitario objetivo (Bs/unidad) que se persigue en I&D.
+#
+#   costo_estandar = costo_base
+#                  + coef_composicion * composicion
+#                  + coef_porcion     * porcion_ml
+#                  + coef_calidad     * calidad
+#                  + coef_cremosidad  * cremosidad
+#                  + coef_empaque     * empaque
+# ----------------------------------------------------------------------------
+atributos:
+  costo_base: 0.40
+  unidad_costo: Bs_por_unidad
+  lista:
+    - numero: 1
+      codigo: composicion
+      nombre: Tipo de composición
+      descripcion: "0 = base agua (paleta), 1 = mixto (leche y agua), 2 = crema"
+      unidad: categoria
+      minimo: 0
+      maximo: 2
+      entero: true
+      coeficiente_costo: 0.35
+      presupuesto_por_unidad: 900.0
+      escala: "0 agua · 1 mixto · 2 crema"
+
+    - numero: 2
+      codigo: porcion_ml
+      nombre: Tamaño de porción
+      descripcion: "Volumen de la unidad de venta en mililitros"
+      unidad: ml
+      minimo: 60
+      maximo: 250
+      entero: false
+      coeficiente_costo: 0.008
+      presupuesto_por_unidad: 25.0
+
+    - numero: 3
+      codigo: calidad_ingredientes
+      nombre: Calidad de ingredientes
+      descripcion: "Índice 0-100 de calidad de la materia prima"
+      unidad: indice_0_100
+      minimo: 0
+      maximo: 100
+      entero: false
+      coeficiente_costo: 0.015
+      presupuesto_por_unidad: 22.0
+
+    - numero: 4
+      codigo: cremosidad
+      nombre: Cremorosidad y textura
+      descripcion: "Índice 0-100 de textura percibida"
+      unidad: indice_0_100
+      minimo: 0
+      maximo: 100
+      entero: false
+      coeficiente_costo: 0.005
+      presupuesto_por_unidad: 18.0
+
+    - numero: 5
+      codigo: empaque
+      nombre: Empaque y conservación
+      descripcion: "Índice 0-100 de calidad de empaque y cadena de frío"
+      unidad: indice_0_100
+      minimo: 0
+      maximo: 100
+      entero: false
+      coeficiente_costo: 0.005
+      presupuesto_por_unidad: 16.0
+
+    - numero: 6
+      codigo: costo_unitario
+      nombre: Costo unitario objetivo
+      descripcion: "Costo de producción por unidad que el proyecto de I&D persigue"
+      unidad: Bs_por_unidad
+      minimo: 1.00
+      maximo: 9.00
+      entero: false
+      coeficiente_costo: 0.0
+      presupuesto_por_unidad: 120.0
+
+# Producto de referencia: valores con los que arranca toda marca nueva.
+atributos_iniciales:
+  1: 1
+  2: 120
+  3: 70
+  4: 60
+  5: 60
+  6: 3.36
+
+# ----------------------------------------------------------------------------
+# PARÁMETROS DEL MOTOR
+# ----------------------------------------------------------------------------
+motor:
+  # Atractivo: A = precio_fit * awareness^alpha * cobertura^delta
+  #                * ajuste_producto * ruido
+  precio_referencia_factor: 1.0     # se recalcula con el promedio del mercado
+  exponente_publicidad_base: 0.40
+  exponente_cobertura_base: 0.45
+  sigma_calidad: 22.0               # desviación del ajuste gaussiano de calidad
+  sigma_cremosidad: 25.0
+  sigma_empaque: 30.0
+
+  # Awareness: awareness = 1 - exp(-publicidad / escala_awareness)
+  escala_awareness: 2000.0          # miles de Bs para ~63 % de recordación
+
+  # Ruido determinista del atractivo (±4 %)
+  ruido_minimo: 0.96
+  ruido_maximo: 1.04
+  semilla: mundo_markestrat_bolivia
+
+  # Cobertura
+  cobertura_minima: 0.02
+  cobertura_maxima: 1.00
+  vendedores_plenos: 20             # vendedores por canal para cobertura plena
+  peso_detallistas: 0.60            # peso de la presencia en puntos de venta
+  peso_vendedores: 0.40             # peso de la fuerza de ventas propia
+
+  # Disponibilidad e inventario perecedero
+  merma_anual_inventario: 0.18      # se pierde 18 % del inventario por año
+  costo_almacenaje: 0.115           # del costo unitario sobre inventario final
+  dias_ano: 360
+
+  # Finanzas
+  costo_fijo_por_marca: 300.0       # miles de Bs por año
+  costo_vendedor: 30.6              # miles de Bs por vendedor y año
+  margen_transferencia_defecto: 0.45  # si la marca no tiene costo propio
+  presupuesto_inicial: 8000.0       # miles de Bs
+  presupuesto_piso: 8000.0          # miles de Bs
+  presupuesto_techo: 40000.0        # miles de Bs
+  presupuesto_factor_contribucion: 0.30
+  presupuesto_factor_ingresos: 0.0
+
+  # Demanda no satisfecha: no se arrastra al año siguiente.
+  arrastrar_demanda_insatisfecha: false
+
+# ----------------------------------------------------------------------------
+# ESTUDIOS DE MERCADO (15)
+# ----------------------------------------------------------------------------
+# Los costos son ficticios y están calibrados para el presupuesto del juego.
+# ----------------------------------------------------------------------------
+estudios_meta:
+  naturaleza: ficticio
+  estado_verificacion: no_aplica
+  nota: >
+    Costos y alcance de los estudios definidos para el ejercicio académico.
+    No corresponden a tarifas reales de investigación de mercados.
+
+estudios:
+  - numero: 1
+    codigo: encuesta_consumidores
+    nombre: Encuesta de consumo de helados
+    descripcion: "Recordación de marca, intención de compra y hábitos por canal"
+    costo_base: 42000
+    categoria: consumidor
+
+  - numero: 2
+    codigo: panel_consumidores
+    nombre: Panel de consumidores
+    descripcion: "Participación de mercado por segmento, en unidades vendidas"
+    costo_base: 78000
+    categoria: consumidor
+
+  - numero: 3
+    codigo: panel_distribuidores
+    nombre: Panel de distribuidores
+    descripcion: "Participación de mercado por canal, en unidades vendidas"
+    costo_base: 46000
+    categoria: canal
+
+  - numero: 4
+    codigo: escalas_imagen
+    nombre: Escalas de imagen de marca
+    descripcion: "Calidad percibida, cremosidad y relación precio-valor por marca"
+    costo_base: 15000
+    categoria: consumidor
+
+  - numero: 5
+    codigo: mapa_perceptual
+    nombre: Mapa perceptual de marcas
+    descripcion: "Posicionamiento de marcas y segmentos en dos dimensiones"
+    costo_base: 38000
+    categoria: consumidor
+
+  - numero: 6
+    codigo: pronostico_mercado
+    nombre: Pronóstico de demanda por segmento
+    descripcion: "Unidades esperadas por segmento para el próximo período"
+    costo_base: 26000
+    categoria: mercado
+
+  - numero: 7
+    codigo: test_sabor
+    nombre: Prueba de sabor a ciegas
+    descripcion: "Preferencia de producto sin marca visible, por segmento"
+    costo_base: 29000
+    categoria: producto
+
+  - numero: 8
+    codigo: panel_hogares
+    nombre: Panel de hogares por ocasión de consumo
+    descripcion: "Participación por segmento según ocasión y frecuencia de compra"
+    costo_base: 54000
+    categoria: consumidor
+
+  - numero: 9
+    codigo: disponibilidad_pdv
+    nombre: Disponibilidad en puntos de venta
+    descripcion: "Presencia de cada marca por tipo de punto de venta"
+    costo_base: 31000
+    categoria: canal
+
+  - numero: 10
+    codigo: imagen_marca
+    nombre: Imagen y recordación de marca
+    descripcion: "Asociaciones de marca y notoriedad espontánea"
+    costo_base: 22000
+    categoria: consumidor
+
+  - numero: 11
+    codigo: pronostico_temporada
+    nombre: Pronóstico de temporada alta
+    descripcion: "Demanda esperada en diciembre, enero y febrero"
+    costo_base: 24000
+    categoria: mercado
+
+  - numero: 12
+    codigo: publicidad_competencia
+    nombre: Inversión publicitaria de la competencia
+    descripcion: "Estimación del gasto publicitario por marca"
+    costo_base: 36000
+    categoria: competencia
+
+  - numero: 13
+    codigo: fuerza_ventas_competencia
+    nombre: Fuerza de ventas de la competencia
+    descripcion: "Estimación de vendedores por canal de cada competidor"
+    costo_base: 19000
+    categoria: competencia
+
+  - numero: 14
+    codigo: test_fuerza_ventas
+    nombre: Simulador de fuerza de ventas
+    descripcion: "Proyección de participación al sumar vendedores por canal"
+    costo_base: 27000
+    categoria: experimento
+
+  - numero: 15
+    codigo: test_publicidad
+    nombre: Simulador de respuesta publicitaria
+    descripcion: "Proyección de recordación y participación al variar publicidad"
+    costo_base: 30000
+    categoria: experimento
